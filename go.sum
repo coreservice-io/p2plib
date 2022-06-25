@@ -1,4 +1,4 @@
-github.com/coreservice-io/byte_rpc v0.0.1 h1:pkr8J9zxpd7S0yem04xT8WMI3aqtGr56KJ4KuNdx0jo=
-github.com/coreservice-io/byte_rpc v0.0.1/go.mod h1:vhm4wkBRWtp0aGpTY3wSNHdhB6PFu7HS0J6VBF6gDOA=
+github.com/coreservice-io/byte_rpc v0.0.2 h1:JgaAA/TATL56ydavHMRMwmQibAP0YfzRPqY4bKRHcGU=
+github.com/coreservice-io/byte_rpc v0.0.2/go.mod h1:vhm4wkBRWtp0aGpTY3wSNHdhB6PFu7HS0J6VBF6gDOA=
 github.com/coreservice-io/log v0.1.18 h1:hZ8MXvnxtchnjap36ac4Cpe63W8Mg2eRahBtP9ykAHE=
 github.com/coreservice-io/log v0.1.18/go.mod h1:skkyNG6Y27IrNYzFc0NCekU6+OM+CiLh2AJxTpbRKsA=
