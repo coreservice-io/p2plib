@@ -49,13 +49,12 @@ func (hub *Hub) exchangePeers() {
 
 }
 
-func (hub *Hub) buildInboundConn(ip string, port int) {
+func (hub *Hub) buildInboundConn(ip string, port int) error {
 	hub.in_bound_peers_lock.Lock()
 	defer hub.in_bound_peers_lock.Unlock()
 	if hub.InBoundPeerConns[ip] != nil || hub.OutBoundPeerConns[ip] != nil {
 		//already exist do nothing
-		hub.Logger.Errorln("buildInboundCon nerr  ip already exist:" + ip)
-		return
+		return errors.New("buildInboundCon nerr  ip already exist:" + ip)
 	}
 
 	hub.InBoundPeerConns[ip] = NewPeerConn(true, &Peer{
@@ -76,8 +75,13 @@ func (hub *Hub) buildInboundConn(ip string, port int) {
 		P2p_live_check_duration: hub.config.Hub_peer.P2p_live_check_duration,
 	})
 
-	hub.InBoundPeerConns[ip].Start()
+	dial_err := hub.InBoundPeerConns[ip].Dial()
+	if dial_err != nil {
+		return dial_err
+	}
 
+	hub.InBoundPeerConns[ip].Run()
+	return nil
 }
 
 func (hub *Hub) serverAcceptConn(listener net.Listener) (net.Conn, error) {

@@ -47,7 +47,10 @@ func (peerConn *PeerConn) SetHubPeer(hub_p *Peer) *PeerConn {
 	return peerConn
 }
 
-func (peerConn *PeerConn) Start() error {
+func (peerConn *PeerConn) Dial() error {
+	if peerConn.conn != nil {
+		return nil
+	}
 
 	endpoint := peerConn.Peer.P2p_host + ":" + strconv.Itoa(peerConn.Peer.P2p_port)
 	conn, err := net.Dial("tcp", endpoint)
@@ -56,7 +59,6 @@ func (peerConn *PeerConn) Start() error {
 	}
 
 	peerConn.conn = &conn
-	peerConn.Run()
 	return nil
 }
 
