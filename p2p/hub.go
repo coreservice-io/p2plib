@@ -117,21 +117,32 @@ func (hub *Hub) startServer() error {
 				conn.Close()
 			}
 
-			hub.conn_pool_lock.Lock()
 			ip := conn.RemoteAddr().(*net.TCPAddr).IP.String()
-			//////////clear old conn and in/out-bound connections if exist and reassign
-			if ibc, ok := hub.in_bound_peer_conns[ip]; ok {
-				ibc.Close() // will be cleared by callback function
+
+			hub.conn_pool_lock.Lock()
+			hub.in_bound_peer_lock.Lock()
+			hub.out_bound_peer_lock.Lock()
+
+			if ibc, ok := hub.in_bound_peer_conns[ip]; ok { //check to overwrite
+				ibc.Close()
+				delete(hub.in_bound_peer_conns, ip)
 			}
-			if ibc, ok := hub.in_bound_peer_conns[ip]; ok {
-				ibc.Close() // will be cleared by callback function
+			if ibc, ok := hub.out_bound_peer_conns[ip]; ok { //check to overwrite
+				ibc.Close()
+				delete(hub.out_bound_peer_conns, ip)
 			}
-			if _, ok := hub.conn_pool[ip]; ok {
+			if _, ok := hub.conn_pool[ip]; ok { //check to overwrite
 				(*hub.conn_pool[ip]).Close()
+				delete(hub.conn_pool, ip)
 			}
+
 			hub.conn_pool[ip] = &conn
-			////////////////////////////////////////////////
+			hub.out_bound_peer_lock.Unlock()
+			hub.in_bound_peer_lock.Unlock()
 			hub.conn_pool_lock.Unlock()
+
+			////////////////////////////////////////////////
+
 			//check if incoming conn is the peer's callback which i try to build a outbound connection with
 			outboud_target := true
 			if outboud_target {
