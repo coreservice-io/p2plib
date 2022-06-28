@@ -37,10 +37,15 @@ func (peerConn *PeerConn) SetConn(conn *net.Conn) *PeerConn {
 	return peerConn
 }
 
-// func (peerConn *PeerConn) SetHubPeer(hub_p *Peer) *PeerConn {
-// 	peerConn.Hub_peer = hub_p
-// 	return peerConn
-// }
+func (peerConn *PeerConn) SetRpcHandler(hanlders map[string]func([]byte) []byte) error {
+	for method, h := range hanlders {
+		err := peerConn.rpc_client.Register(method, h)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (peerConn *PeerConn) RegRpcHandlers(handlers map[string]func([]byte) []byte) error {
 	if peerConn.rpc_client == nil {

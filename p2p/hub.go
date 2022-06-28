@@ -94,9 +94,9 @@ func (hub *Hub) buildInboundConn(peer *Peer) error {
 
 	hub.in_bound_peer_conns[peer.Ip] = inbound_peer
 	//register all the handlers
-	inbound_peer.reg_peerlist()
-	for method, h := range hub.hanlder {
-		inbound_peer.rpc_client.Register(method, h)
+	err := inbound_peer.reg_peerlist().RegRpcHandlers(hub.hanlder)
+	if err != nil {
+		hub.logger.Errorln("RegRpcHandlers error", err)
 	}
 	hub.in_bound_peer_lock.Unlock()
 
@@ -185,12 +185,12 @@ func (hub *Hub) startServer() error {
 					}
 					hub.conn_pool_lock.Unlock()
 					hub.out_bound_peer_lock.Unlock()
-				}).SetConn(&conn)
+				}).SetConn(&conn).reg_ping().reg_peerlist()
 
 				//register all the handlers
-				out_pc.reg_ping().reg_peerlist()
-				for method, h := range hub.hanlder {
-					out_pc.rpc_client.Register(method, h)
+				err := out_pc.RegRpcHandlers(hub.hanlder)
+				if err != nil {
+					hub.logger.Errorln("RegRpcHandlers error", err)
 				}
 
 				hub.out_bound_peer_conns[ip] = out_pc
@@ -199,7 +199,7 @@ func (hub *Hub) startServer() error {
 
 			} else {
 
-				pc := NewPeerConn(hub, false, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
+				NewPeerConn(hub, false, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
 					if err != nil {
 						hub.logger.Errorln("inbound connection error:", err)
 					}
@@ -208,11 +208,8 @@ func (hub *Hub) startServer() error {
 						delete(hub.conn_pool, pc.Peer.Ip)
 					}
 					hub.conn_pool_lock.Unlock()
-				}).SetConn(&conn)
+				}).SetConn(&conn).reg_ping().reg_peerlist().reg_build_conn().Run()
 
-				pc.reg_ping().reg_peerlist().reg_build_conn()
-
-				pc.Run()
 				//close the conn which is used for build_conn callback
 				time.AfterFunc(hub.config.P2p_live_check_duration, func() {
 					conn.Close()
