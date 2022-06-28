@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/coreservice-io/log"
+	"github.com/coreservice-io/reference"
 )
 
 type HubConfig struct {
@@ -20,6 +21,7 @@ type HubConfig struct {
 type Hub struct {
 	config *HubConfig
 	kvdb   *KVDB
+	ref    *reference.Reference
 	logger log.Logger
 	seeds  []*Peer
 
@@ -35,11 +37,12 @@ type Hub struct {
 	hanlder map[string]func([]byte) []byte
 }
 
-func NewHub(kvdb *KVDB, seeds []*Peer, config *HubConfig, logger log.Logger) *Hub {
+func NewHub(kvdb *KVDB, ref *reference.Reference, seeds []*Peer, config *HubConfig, logger log.Logger) *Hub {
 	return &Hub{
 		config:               config,
 		seeds:                seeds,
 		kvdb:                 kvdb,
+		ref:                  ref,
 		logger:               logger,
 		conn_pool:            make(map[string]*net.Conn),
 		in_bound_peer_conns:  make(map[string]*PeerConn),
@@ -48,12 +51,20 @@ func NewHub(kvdb *KVDB, seeds []*Peer, config *HubConfig, logger log.Logger) *Hu
 	}
 }
 
-func (hub *Hub) RegHandler(method string, handler func([]byte) []byte) error {
-	if _, ok := hub.hanlder[method]; ok {
-		return errors.New("method already exist")
+func (hub *Hub) is_outbound_target(ip string) bool {
+	key := "outbound_target:" + ip
+	result, _ := hub.ref.Get(key)
+	if result == nil {
+		return false
+	} else {
+		return true
 	}
-	hub.hanlder[method] = handler
-	return nil
+}
+
+func (hub *Hub) set_outbound_target(ip string) {
+	key := "outbound_target:" + ip
+	value := true
+	hub.ref.Set(key, &value, 1800) //30 minutes
 }
 
 func (hub *Hub) buildInboundConn(ip string, port int) error {
@@ -61,7 +72,7 @@ func (hub *Hub) buildInboundConn(ip string, port int) error {
 	hub.in_bound_peer_lock.Lock()
 
 	hub.in_bound_peer_conns[ip] = NewPeerConn(true, &Peer{
-		P2p_host: ip,
+		P2p_ip:   ip,
 		P2p_port: port,
 	}, func(pc *PeerConn, err error) {
 		if err != nil {
@@ -144,51 +155,46 @@ func (hub *Hub) startServer() error {
 			////////////////////////////////////////////////
 
 			//check if incoming conn is the peer's callback which i try to build a outbound connection with
-			outboud_target := true
-			if outboud_target {
+			if hub.is_outbound_target(ip) {
 
-				hub.out_bound_peer_conns[ip] = NewPeerConn(true, nil, func(pc *PeerConn, err error) {
+				hub.out_bound_peer_lock.Lock()
+
+				out_pc := NewPeerConn(true, &Peer{P2p_ip: ip}, func(pc *PeerConn, err error) {
 					if err != nil {
 						hub.logger.Errorln("outboud connection liveness check error:", err)
 					}
 					hub.conn_pool_lock.Lock()
 					hub.out_bound_peer_lock.Lock()
-					if hub.out_bound_peer_conns[ip] == pc {
-						delete(hub.out_bound_peer_conns, ip)
+					if hub.out_bound_peer_conns[pc.Peer.P2p_ip] == pc {
+						delete(hub.out_bound_peer_conns, pc.Peer.P2p_ip)
 					}
-					if hub.conn_pool[ip] == pc.conn {
-						delete(hub.conn_pool, ip)
+					if hub.conn_pool[pc.Peer.P2p_ip] == pc.conn {
+						delete(hub.conn_pool, pc.Peer.P2p_ip)
 					}
 					hub.conn_pool_lock.Unlock()
 					hub.out_bound_peer_lock.Unlock()
 				})
-				hub.out_bound_peer_conns[ip].SetConn(&conn).Run()
+
+				hub.out_bound_peer_conns[ip] = out_pc
+				hub.reg_peerlist(out_pc)
+				out_pc.SetConn(&conn).Run()
+
+				hub.out_bound_peer_lock.Unlock()
 
 			} else {
 
-				pc := NewPeerConn(false, nil, func(pc *PeerConn, err error) {
+				pc := NewPeerConn(false, &Peer{P2p_ip: ip}, func(pc *PeerConn, err error) {
 					if err != nil {
 						hub.logger.Errorln("inbound connection error:", err)
 					}
 					hub.conn_pool_lock.Lock()
-					if hub.conn_pool[ip] == pc.conn { //maybe already be replaced , only del the old one
-						delete(hub.conn_pool, ip)
+					if hub.conn_pool[pc.Peer.P2p_ip] == pc.conn { //maybe already be replaced , only del the old one
+						delete(hub.conn_pool, pc.Peer.P2p_ip)
 					}
 					hub.conn_pool_lock.Unlock()
 				}).SetConn(&conn)
 
-				pc.rpc_client.Register(METHOD_BUILD_CONN, func(input []byte) []byte {
-					//add build conn task
-					if hub.in_bound_peer_conns[ip] != nil || hub.out_bound_peer_conns[ip] != nil {
-						//already exist do nothing
-						return []byte(MSG_IP_OVERLAP_ERR)
-					}
-					if len(hub.in_bound_peer_conns) > int(hub.config.P2p_inbound_limit) {
-						return []byte(MSG_OVERLIMIT_ERR)
-					}
-					go hub.buildInboundConn(ip, 123)
-					return []byte(MSG_APPROVED)
-				})
+				hub.reg_build_conn(pc).reg_peerlist(pc)
 
 				pc.Run()
 				//close the conn which is used for build_conn callback
@@ -208,4 +214,36 @@ func (hub *Hub) Start() {
 
 	//go hub.exchangePeers()
 
+}
+
+func (hub *Hub) RegHandler(method string, handler func([]byte) []byte) error {
+	if _, ok := hub.hanlder[method]; ok {
+		return errors.New("method already exist")
+	}
+	hub.hanlder[method] = handler
+	return nil
+}
+
+func (hub *Hub) reg_build_conn(pc *PeerConn) *Hub {
+	pc.rpc_client.Register(METHOD_BUILD_CONN, func(input []byte) []byte {
+		//add build conn task
+		if hub.in_bound_peer_conns[pc.Hub_peer.P2p_ip] != nil || hub.out_bound_peer_conns[pc.Hub_peer.P2p_ip] != nil {
+			//already exist do nothing
+			return []byte(MSG_IP_OVERLAP_ERR)
+		}
+		if len(hub.in_bound_peer_conns) > int(hub.config.P2p_inbound_limit) {
+			return []byte(MSG_OVERLIMIT_ERR)
+		}
+		go hub.buildInboundConn(pc.Hub_peer.P2p_ip, 123)
+		return []byte(MSG_APPROVED)
+	})
+	return hub
+}
+
+func (hub *Hub) reg_peerlist(pc *PeerConn) *Hub {
+	pc.rpc_client.Register(METHOD_PEERLIST, func(input []byte) []byte {
+		go hub.buildInboundConn(pc.Hub_peer.P2p_ip, 123)
+		return []byte("this is a list of peers")
+	})
+	return hub
 }

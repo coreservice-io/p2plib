@@ -2,6 +2,7 @@ package p2p
 
 //method
 const METHOD_BUILD_CONN = "build_conn"
+const METHOD_PEERLIST = "peerlist"
 
 //msg
 const MSG_IP_OVERLAP_ERR = "ip_overlap_err"

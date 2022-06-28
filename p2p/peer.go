@@ -11,7 +11,7 @@ import (
 )
 
 type Peer struct {
-	P2p_host                string
+	P2p_ip                  string
 	P2p_port                int
 	P2p_version             uint16
 	P2p_sub_version         uint16
@@ -62,7 +62,7 @@ func (peerConn *PeerConn) Dial() error {
 		return nil
 	}
 
-	endpoint := peerConn.Peer.P2p_host + ":" + strconv.Itoa(peerConn.Peer.P2p_port)
+	endpoint := peerConn.Peer.P2p_ip + ":" + strconv.Itoa(peerConn.Peer.P2p_port)
 	conn, err := net.Dial("tcp", endpoint)
 	if err != nil {
 		return errors.New("buildInboundConn err:" + endpoint)
