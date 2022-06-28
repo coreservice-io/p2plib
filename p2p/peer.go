@@ -5,35 +5,30 @@ import (
 	"io"
 	"net"
 	"strconv"
-	"time"
 
 	"github.com/coreservice-io/byte_rpc"
 )
 
 type Peer struct {
-	P2p_ip                  string
-	P2p_port                int
-	P2p_version             uint16
-	P2p_sub_version         uint16
-	P2p_body_max_bytes      uint32
-	P2p_method_max_bytes    uint8
-	P2p_live_check_duration time.Duration
+	Ip   string
+	Port int
 }
 
 type PeerConn struct {
+	Hub            *Hub
 	Peer           *Peer
-	Hub_peer       *Peer
 	conn           *net.Conn
 	rpc_client     *byte_rpc.Client
 	outbound       bool //either outbound or inbound
 	close_callback func(*PeerConn, error)
 }
 
-func NewPeerConn(is_outbound bool, peer *Peer, close_callback func(*PeerConn, error)) *PeerConn {
+func NewPeerConn(hub *Hub, is_outbound bool, peer *Peer, close_callback func(*PeerConn, error)) *PeerConn {
 	return &PeerConn{
 		Peer:           peer,
 		outbound:       is_outbound,
 		close_callback: close_callback,
+		Hub:            hub,
 	}
 }
 
@@ -42,10 +37,10 @@ func (peerConn *PeerConn) SetConn(conn *net.Conn) *PeerConn {
 	return peerConn
 }
 
-func (peerConn *PeerConn) SetHubPeer(hub_p *Peer) *PeerConn {
-	peerConn.Hub_peer = hub_p
-	return peerConn
-}
+// func (peerConn *PeerConn) SetHubPeer(hub_p *Peer) *PeerConn {
+// 	peerConn.Hub_peer = hub_p
+// 	return peerConn
+// }
 
 func (peerConn *PeerConn) RegRpcHandlers(handlers map[string]func([]byte) []byte) error {
 	if peerConn.rpc_client == nil {
@@ -62,7 +57,7 @@ func (peerConn *PeerConn) Dial() error {
 		return nil
 	}
 
-	endpoint := peerConn.Peer.P2p_ip + ":" + strconv.Itoa(peerConn.Peer.P2p_port)
+	endpoint := peerConn.Peer.Ip + ":" + strconv.Itoa(peerConn.Peer.Port)
 	conn, err := net.Dial("tcp", endpoint)
 	if err != nil {
 		return errors.New("buildInboundConn err:" + endpoint)
@@ -75,11 +70,11 @@ func (peerConn *PeerConn) Dial() error {
 func (peerConn *PeerConn) Run() {
 
 	peerConn.rpc_client = byte_rpc.NewClient(io.ReadWriteCloser(*peerConn.conn), &byte_rpc.Config{
-		Version:             peerConn.Hub_peer.P2p_version,
-		Sub_version:         peerConn.Hub_peer.P2p_sub_version,
-		Body_max_bytes:      peerConn.Hub_peer.P2p_body_max_bytes,
-		Method_max_bytes:    peerConn.Hub_peer.P2p_method_max_bytes,
-		Live_check_duration: peerConn.Hub_peer.P2p_live_check_duration,
+		Version:             peerConn.Hub.config.P2p_version,
+		Sub_version:         peerConn.Hub.config.P2p_sub_version,
+		Body_max_bytes:      peerConn.Hub.config.P2p_body_max_bytes,
+		Method_max_bytes:    peerConn.Hub.config.P2p_method_max_bytes,
+		Live_check_duration: peerConn.Hub.config.P2p_live_check_duration,
 		Conn_closed_callback: func(err error) {
 			peerConn.close_callback(peerConn, err)
 		},
