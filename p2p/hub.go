@@ -80,7 +80,7 @@ func (hub *Hub) buildInboundConn(peer *Peer) error {
 	////////////try to build inbound connection//////////////////
 	hub.in_bound_peer_lock.Lock()
 
-	hub.in_bound_peer_conns[peer.Ip] = NewPeerConn(hub, true, &Peer{
+	inbound_peer := NewPeerConn(hub, true, &Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
 	}, func(pc *PeerConn, err error) {
@@ -92,17 +92,26 @@ func (hub *Hub) buildInboundConn(peer *Peer) error {
 		hub.in_bound_peer_lock.Unlock()
 	})
 
+	hub.in_bound_peer_conns[peer.Ip] = inbound_peer
+	//register all the handlers
+	inbound_peer.reg_peerlist()
+	for method, h := range hub.hanlder {
+		inbound_peer.rpc_client.Register(method, h)
+	}
 	hub.in_bound_peer_lock.Unlock()
 
-	dial_err := hub.in_bound_peer_conns[peer.Ip].Dial()
+	/////////dail remote tcp////////
+	dial_err := inbound_peer.Dial()
 	if dial_err != nil {
 		hub.in_bound_peer_lock.Lock()
-		delete(hub.in_bound_peer_conns, peer.Ip)
+		if hub.in_bound_peer_conns[inbound_peer.Peer.Ip] == inbound_peer {
+			delete(hub.in_bound_peer_conns, inbound_peer.Peer.Ip)
+		}
 		hub.in_bound_peer_lock.Unlock()
 		return dial_err
 	}
-
-	hub.in_bound_peer_conns[peer.Ip].Run()
+	////////////////////////////////
+	inbound_peer.Run()
 	return nil
 
 }
@@ -179,7 +188,7 @@ func (hub *Hub) startServer() error {
 				}).SetConn(&conn)
 
 				//register all the handlers
-				hub.reg_ping(out_pc).reg_peerlist(out_pc)
+				out_pc.reg_ping().reg_peerlist()
 				for method, h := range hub.hanlder {
 					out_pc.rpc_client.Register(method, h)
 				}
@@ -201,7 +210,7 @@ func (hub *Hub) startServer() error {
 					hub.conn_pool_lock.Unlock()
 				}).SetConn(&conn)
 
-				hub.reg_ping(pc).reg_peerlist(pc).reg_build_conn(pc)
+				pc.reg_ping().reg_peerlist().reg_build_conn()
 
 				pc.Run()
 				//close the conn which is used for build_conn callback
@@ -229,42 +238,4 @@ func (hub *Hub) RegHandler(method string, handler func([]byte) []byte) error {
 	}
 	hub.hanlder[method] = handler
 	return nil
-}
-
-func (hub *Hub) reg_build_conn(pc *PeerConn) *Hub {
-	pc.rpc_client.Register(METHOD_BUILD_CONN, func(input []byte) []byte {
-
-		hub.in_bound_peer_lock.Lock()
-		defer hub.in_bound_peer_lock.Unlock()
-		hub.out_bound_peer_lock.Lock()
-		defer hub.out_bound_peer_lock.Unlock()
-
-		//get the peer port here
-		pc.Peer.Port = 8099
-		//add build conn task
-		if hub.in_bound_peer_conns[pc.Peer.Ip] != nil || hub.out_bound_peer_conns[pc.Peer.Ip] != nil {
-			//already exist do nothing
-			return []byte(MSG_IP_OVERLAP_ERR)
-		}
-		if len(hub.in_bound_peer_conns) > int(hub.config.P2p_inbound_limit) {
-			return []byte(MSG_OVERLIMIT_ERR)
-		}
-		go hub.buildInboundConn(pc.Peer)
-		return []byte(MSG_APPROVED)
-	})
-	return hub
-}
-
-func (hub *Hub) reg_peerlist(pc *PeerConn) *Hub {
-	pc.rpc_client.Register(METHOD_PEERLIST, func(input []byte) []byte {
-		return []byte("this is a list of peers")
-	})
-	return hub
-}
-
-func (hub *Hub) reg_ping(pc *PeerConn) *Hub {
-	pc.rpc_client.Register(METHOD_PING, func(input []byte) []byte {
-		return []byte(MSG_PONG)
-	})
-	return hub
 }

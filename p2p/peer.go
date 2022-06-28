@@ -83,14 +83,52 @@ func (peerConn *PeerConn) Run() {
 	peerConn.rpc_client.StartLivenessCheck().Run()
 }
 
-func (peer *PeerConn) Close() {
-	peer.close_callback(peer, nil)
+func (pc *PeerConn) Close() {
+	pc.close_callback(pc, nil)
 }
 
-func (peer *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
-	result, err_code := peer.rpc_client.Call(method, msg)
+func (pc *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
+	result, err_code := pc.rpc_client.Call(method, msg)
 	if err_code != 0 {
 		return nil, errors.New(byte_rpc.GetErrMsgStr(uint(err_code)))
 	}
 	return *result, nil
+}
+
+func (pc *PeerConn) reg_build_conn() *PeerConn {
+	pc.rpc_client.Register(METHOD_BUILD_CONN, func(input []byte) []byte {
+
+		pc.Hub.in_bound_peer_lock.Lock()
+		defer pc.Hub.in_bound_peer_lock.Unlock()
+		pc.Hub.out_bound_peer_lock.Lock()
+		defer pc.Hub.out_bound_peer_lock.Unlock()
+
+		//get the peer port here
+		pc.Peer.Port = 8099
+		//add build conn task
+		if pc.Hub.in_bound_peer_conns[pc.Peer.Ip] != nil || pc.Hub.out_bound_peer_conns[pc.Peer.Ip] != nil {
+			//already exist do nothing
+			return []byte(MSG_IP_OVERLAP_ERR)
+		}
+		if len(pc.Hub.in_bound_peer_conns) > int(pc.Hub.config.P2p_inbound_limit) {
+			return []byte(MSG_OVERLIMIT_ERR)
+		}
+		go pc.Hub.buildInboundConn(pc.Peer)
+		return []byte(MSG_APPROVED)
+	})
+	return pc
+}
+
+func (pc *PeerConn) reg_peerlist() *PeerConn {
+	pc.rpc_client.Register(METHOD_PEERLIST, func(input []byte) []byte {
+		return []byte("this is a list of peers")
+	})
+	return pc
+}
+
+func (pc *PeerConn) reg_ping() *PeerConn {
+	pc.rpc_client.Register(METHOD_PING, func(input []byte) []byte {
+		return []byte(MSG_PONG)
+	})
+	return pc
 }
