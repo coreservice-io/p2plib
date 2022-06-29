@@ -101,11 +101,12 @@ func (pc *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
 func (pc *PeerConn) reg_build_conn() *PeerConn {
 	pc.rpc_client.Register(METHOD_BUILD_CONN, func(input []byte) []byte {
 
-		pc.Peer.Port = decode_build_conn(input)
-		if pc.Peer.Port > uint16(65535) || pc.Peer.Port == 0 {
+		port, err := decode_build_conn(input)
+		if err != nil {
 			return []byte(MSG_PORT_ERR)
 		}
 
+		pc.Peer.Port = port
 		pc.Hub.in_bound_peer_lock.Lock()
 		defer pc.Hub.in_bound_peer_lock.Unlock()
 		pc.Hub.out_bound_peer_lock.Lock()

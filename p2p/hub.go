@@ -87,17 +87,22 @@ func (hub *Hub) dail_outbound_conn(peer *Peer) error {
 
 	hub.set_outbound_target(peer.Ip)
 
+	port_bytes, err := encode_build_conn(peer.Port)
+	if err != nil {
+		return err
+	}
+
 	outbound_peer := NewPeerConn(nil, true, &Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
 	}, nil)
 
-	err := outbound_peer.Dial()
+	err = outbound_peer.Dial()
 	if err != nil {
 		return err
 	}
 
-	_, err = outbound_peer.SendMsg(METHOD_BUILD_CONN, encode_build_conn(peer.Port))
+	_, err = outbound_peer.SendMsg(METHOD_BUILD_CONN, port_bytes)
 	if err != nil {
 		return err
 	}
@@ -270,17 +275,18 @@ func (hub *Hub) Start() {
 	//process
 
 	//1. try to connect to old outbound connections which saved in dbkv
-	rebuild_wait := make(chan struct{}, 0)
-	time.AfterFunc(120*time.Second, func() {
-		rebuild_wait <- struct{}{}
-	})
+	// rebuild_wait := make(chan struct{}, 0)
+	// time.AfterFunc(120*time.Second, func() {
+	// 	rebuild_wait <- struct{}{}
+	// })
 	hub.logger.Infoln("try rebuild last outbound connections")
 	hub.rebuild_last_outbound_conns()
-	<-rebuild_wait
+	time.Sleep(30 * time.Second)
+	hub.logger.Infoln("waiting outbound connections callback")
 
 	//2. if not enough outbound connections then try from seeds
 	if len(hub.out_bound_peer_conns) == 0 {
-		hub.seed_manager.Bootstrap()
+		//hub.seed_manager.Bootstrap()
 	}
 
 	if len(hub.out_bound_peer_conns) == 0 {

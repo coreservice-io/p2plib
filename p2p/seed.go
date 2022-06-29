@@ -1,25 +1,51 @@
 package p2p
 
+import (
+	"errors"
+	"math/rand"
+)
+
 type Seed struct {
 	Host string //either ip or domain name
-	Port int
+	Port uint16
 }
 
 type SeedManager struct {
-	Seeds    []Seed
-	PeerPool []Peer
+	Seeds    []*Seed
+	PeerPool []*Peer
 }
 
-func (sm *SeedManager) Bootstrap() {
-	//1.randomly pick the seed and get peerlist into the peerpool
+func (sm *SeedManager) update_peers_from_seeds(seeds_limit int) {
 
-	//2.pick the peer from the peerpool and get peerlist into the peerpool x n times
+	pick_seed := sm.Seeds[rand.Intn(len(sm.Seeds))]
 
-	//
+	pc := NewPeerConn(nil, true, &Peer{Ip: pick_seed.Host, Port: pick_seed.Port}, nil)
+	dial_err := pc.Dial()
+	if dial_err != nil {
+		return
+	}
+
+	rmsg, err := pc.SendMsg(METHOD_PEERLIST, nil)
+	if err != nil {
+		return
+	}
+
+	plist, pl_err := decode_peerlist(seeds_limit, rmsg)
+	if pl_err != nil {
+		return
+	}
+
+	sm.PeerPool = append(sm.PeerPool, plist...)
 
 }
 
-func (sm *SeedManager) PopPeers() []*Peer {
+func (sm *SeedManager) SamplingPeer() (*Peer, error) {
 
-	return nil
+	if len(sm.PeerPool) == 0 {
+		if len(sm.Seeds) == 0 {
+			return nil, errors.New("seeds empty")
+		}
+
+	}
+	return nil, nil
 }
