@@ -5,13 +5,14 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/coreservice-io/byte_rpc"
 )
 
 type Peer struct {
-	Ip   string
-	Port int
+	Ip   string `json:"ip"`
+	Port uint16 `json:"port"`
 }
 
 type PeerConn struct {
@@ -37,22 +38,17 @@ func (peerConn *PeerConn) SetConn(conn *net.Conn) *PeerConn {
 	return peerConn
 }
 
-func (peerConn *PeerConn) SetRpcHandler(hanlders map[string]func([]byte) []byte) error {
-	for method, h := range hanlders {
-		err := peerConn.rpc_client.Register(method, h)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+func (peerConn *PeerConn) RegisterRpcHandlers(handlers map[string]func([]byte) []byte) error {
 
-func (peerConn *PeerConn) RegRpcHandlers(handlers map[string]func([]byte) []byte) error {
 	if peerConn.rpc_client == nil {
 		return errors.New("rpc_client nil")
 	}
+
 	for method_str, m_handler := range handlers {
-		peerConn.rpc_client.Register(method_str, m_handler)
+		err := peerConn.rpc_client.Register(method_str, m_handler)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -62,8 +58,10 @@ func (peerConn *PeerConn) Dial() error {
 		return nil
 	}
 
-	endpoint := peerConn.Peer.Ip + ":" + strconv.Itoa(peerConn.Peer.Port)
-	conn, err := net.Dial("tcp", endpoint)
+	endpoint := peerConn.Peer.Ip + ":" + strconv.FormatUint(uint64(peerConn.Peer.Port), 10)
+
+	dialer := net.Dialer{Timeout: 15 * time.Second}
+	conn, err := dialer.Dial("tcp", endpoint)
 	if err != nil {
 		return errors.New("buildInboundConn err:" + endpoint)
 	}
@@ -103,13 +101,16 @@ func (pc *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
 func (pc *PeerConn) reg_build_conn() *PeerConn {
 	pc.rpc_client.Register(METHOD_BUILD_CONN, func(input []byte) []byte {
 
+		pc.Peer.Port = decode_build_conn(input)
+		if pc.Peer.Port > uint16(65535) || pc.Peer.Port == 0 {
+			return []byte(MSG_PORT_ERR)
+		}
+
 		pc.Hub.in_bound_peer_lock.Lock()
 		defer pc.Hub.in_bound_peer_lock.Unlock()
 		pc.Hub.out_bound_peer_lock.Lock()
 		defer pc.Hub.out_bound_peer_lock.Unlock()
 
-		//get the peer port here
-		pc.Peer.Port = 8099
 		//add build conn task
 		if pc.Hub.in_bound_peer_conns[pc.Peer.Ip] != nil || pc.Hub.out_bound_peer_conns[pc.Peer.Ip] != nil {
 			//already exist do nothing
@@ -118,7 +119,7 @@ func (pc *PeerConn) reg_build_conn() *PeerConn {
 		if len(pc.Hub.in_bound_peer_conns) > int(pc.Hub.config.P2p_inbound_limit) {
 			return []byte(MSG_OVERLIMIT_ERR)
 		}
-		go pc.Hub.buildInboundConn(pc.Peer)
+		go pc.Hub.build_inbound_conn(pc.Peer)
 		return []byte(MSG_APPROVED)
 	})
 	return pc

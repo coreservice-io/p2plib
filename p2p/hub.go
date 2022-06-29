@@ -28,7 +28,6 @@ type Hub struct {
 	kvdb   *KVDB
 	ref    *reference.Reference
 	logger log.Logger
-	seeds  map[string]Peer
 
 	conn_pool      map[string]*net.Conn
 	conn_pool_lock sync.Mutex
@@ -40,12 +39,13 @@ type Hub struct {
 	out_bound_peer_lock  sync.Mutex
 
 	hanlder map[string]func([]byte) []byte
+
+	seed_manager *SeedManager
 }
 
-func NewHub(kvdb *KVDB, ref *reference.Reference, seeds map[string]Peer, config *HubConfig, logger log.Logger) *Hub {
+func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubConfig, logger log.Logger) *Hub {
 	return &Hub{
 		config:               config,
-		seeds:                seeds,
 		kvdb:                 kvdb,
 		ref:                  ref,
 		logger:               logger,
@@ -53,11 +53,16 @@ func NewHub(kvdb *KVDB, ref *reference.Reference, seeds map[string]Peer, config 
 		in_bound_peer_conns:  make(map[string]*PeerConn),
 		out_bound_peer_conns: map[string]*PeerConn{},
 		hanlder:              map[string]func([]byte) []byte{},
+		seed_manager:         sm,
 	}
 }
 
-func (hub *Hub) AddSeed(seed Peer) {
-	hub.seeds[seed.Ip] = seed
+func (hub *Hub) RegisterHandlers(method string, handler func([]byte) []byte) error {
+	if _, ok := hub.hanlder[method]; ok {
+		return errors.New("method already exist")
+	}
+	hub.hanlder[method] = handler
+	return nil
 }
 
 func (hub *Hub) is_outbound_target(ip string) bool {
@@ -76,7 +81,31 @@ func (hub *Hub) set_outbound_target(ip string) {
 	hub.ref.Set(key, &value, 1800) //30 minutes
 }
 
-func (hub *Hub) buildInboundConn(peer *Peer) error {
+func (hub *Hub) dail_outbound_conn(peer *Peer) error {
+	hub.out_bound_peer_lock.Lock()
+	defer hub.out_bound_peer_lock.Unlock()
+
+	hub.set_outbound_target(peer.Ip)
+
+	outbound_peer := NewPeerConn(nil, true, &Peer{
+		Ip:   peer.Ip,
+		Port: peer.Port,
+	}, nil)
+
+	err := outbound_peer.Dial()
+	if err != nil {
+		return err
+	}
+
+	_, err = outbound_peer.SendMsg(METHOD_BUILD_CONN, encode_build_conn(peer.Port))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (hub *Hub) build_inbound_conn(peer *Peer) error {
 	////////////try to build inbound connection//////////////////
 	hub.in_bound_peer_lock.Lock()
 
@@ -94,7 +123,7 @@ func (hub *Hub) buildInboundConn(peer *Peer) error {
 
 	hub.in_bound_peer_conns[peer.Ip] = inbound_peer
 	//register all the handlers
-	err := inbound_peer.reg_peerlist().RegRpcHandlers(hub.hanlder)
+	err := inbound_peer.reg_peerlist().RegisterRpcHandlers(hub.hanlder)
 	if err != nil {
 		hub.logger.Errorln("RegRpcHandlers error", err)
 	}
@@ -116,7 +145,20 @@ func (hub *Hub) buildInboundConn(peer *Peer) error {
 
 }
 
-func (hub *Hub) startServer() error {
+func (hub *Hub) rebuild_last_outbound_conns() {
+	plist, err := get_outbounds(*hub.kvdb)
+	if err != nil {
+		hub.logger.Errorln("rebuild_last_outbound_conns err:", err)
+		return
+	}
+
+	for _, peer := range plist {
+		hub.dail_outbound_conn(peer)
+	}
+
+}
+
+func (hub *Hub) start_server() error {
 
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(int(hub.config.Hub_peer.Port)))
 	if err != nil {
@@ -188,7 +230,7 @@ func (hub *Hub) startServer() error {
 				}).SetConn(&conn).reg_ping().reg_peerlist()
 
 				//register all the handlers
-				err := out_pc.RegRpcHandlers(hub.hanlder)
+				err := out_pc.RegisterRpcHandlers(hub.hanlder)
 				if err != nil {
 					hub.logger.Errorln("RegRpcHandlers error", err)
 				}
@@ -223,16 +265,26 @@ func (hub *Hub) startServer() error {
 
 func (hub *Hub) Start() {
 
-	hub.startServer()
+	hub.start_server()
 
-	//go hub.exchangePeers()
+	//process
 
-}
+	//1. try to connect to old outbound connections which saved in dbkv
+	rebuild_wait := make(chan struct{}, 0)
+	time.AfterFunc(120*time.Second, func() {
+		rebuild_wait <- struct{}{}
+	})
+	hub.logger.Infoln("try rebuild last outbound connections")
+	hub.rebuild_last_outbound_conns()
+	<-rebuild_wait
 
-func (hub *Hub) RegHandler(method string, handler func([]byte) []byte) error {
-	if _, ok := hub.hanlder[method]; ok {
-		return errors.New("method already exist")
+	//2. if not enough outbound connections then try from seeds
+	if len(hub.out_bound_peer_conns) == 0 {
+		hub.seed_manager.Bootstrap()
 	}
-	hub.hanlder[method] = handler
-	return nil
+
+	if len(hub.out_bound_peer_conns) == 0 {
+		hub.logger.Fatalln("p2p initialization error, try to set new seeds")
+	}
+
 }
