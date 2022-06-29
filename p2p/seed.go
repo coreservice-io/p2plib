@@ -14,6 +14,13 @@ type SeedManager struct {
 	PeerPool []*Peer
 }
 
+func (sm *SeedManager) get_peer() *Peer {
+	if len(sm.PeerPool) > 0 {
+		return sm.PeerPool[rand.Intn(len(sm.PeerPool))]
+	}
+	return nil
+}
+
 func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 
 	pc := NewPeerConn(nil, true, &Peer{Ip: host, Port: port}, nil)

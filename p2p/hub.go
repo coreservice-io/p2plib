@@ -18,9 +18,9 @@ type HubConfig struct {
 	P2p_body_max_bytes      uint32
 	P2p_method_max_bytes    uint8
 	P2p_live_check_duration time.Duration
-	P2p_inbound_limit       uint
-	P2p_outbound_limit      uint
-	Conn_pool_limit         uint //how many connnections can exist connection to this hub
+	P2p_inbound_limit       uint // set this to be big for seed nodes
+	P2p_outbound_limit      uint // ==0 for seed nodes
+	Conn_pool_limit         uint //how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
 }
 
 type Hub struct {
@@ -41,9 +41,12 @@ type Hub struct {
 	hanlder map[string]func([]byte) []byte
 
 	seed_manager *SeedManager
+
+	boot bool
 }
 
 func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubConfig, logger log.Logger) *Hub {
+
 	return &Hub{
 		config:               config,
 		kvdb:                 kvdb,
@@ -54,6 +57,7 @@ func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubCo
 		out_bound_peer_conns: map[string]*PeerConn{},
 		hanlder:              map[string]func([]byte) []byte{},
 		seed_manager:         sm,
+		boot:                 false,
 	}
 }
 
@@ -246,6 +250,12 @@ func (hub *Hub) start_server() error {
 
 			} else {
 
+				//if not boot yet,don't allow the inbound for safety reason
+				if !hub.boot {
+					conn.Close()
+					return
+				}
+
 				NewPeerConn(hub, false, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
 					if err != nil {
 						hub.logger.Errorln("inbound connection error:", err)
@@ -271,26 +281,45 @@ func (hub *Hub) start_server() error {
 func (hub *Hub) Start() {
 
 	hub.start_server()
+	if hub.config.P2p_outbound_limit > 0 {
+		hub.boot_conns()
+	}
+	hub.boot = true
+}
 
+func (hub *Hub) boot_conns() {
 	//process
-
 	//1. try to connect to old outbound connections which saved in dbkv
-	// rebuild_wait := make(chan struct{}, 0)
-	// time.AfterFunc(120*time.Second, func() {
-	// 	rebuild_wait <- struct{}{}
-	// })
 	hub.logger.Infoln("try rebuild last outbound connections")
 	hub.rebuild_last_outbound_conns()
 	time.Sleep(30 * time.Second)
-	hub.logger.Infoln("waiting outbound connections callback")
 
-	//2. if not enough outbound connections then try from seeds
-	if len(hub.out_bound_peer_conns) == 0 {
-		//hub.seed_manager.Bootstrap()
+	for {
+		time.Sleep(60 * time.Second)
+		if len(hub.out_bound_peer_conns) != 0 {
+			break
+		}
+		hub.logger.Infoln("try rebuild outbound conns from seed")
+		//try from seeds
+		hub.seed_manager.SamplingPeersFromSeed()
+		for t := 0; t < 3; t++ {
+			hub.seed_manager.SamplingPeersFromPeer()
+		}
+
+		for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
+			s_p := hub.seed_manager.get_peer()
+			if s_p != nil {
+				hub.dail_outbound_conn(&Peer{Ip: s_p.Ip, Port: s_p.Port})
+			}
+		}
+
+		time.Sleep(60 * time.Second)
+		if len(hub.out_bound_peer_conns) != 0 {
+			break
+		}
+		time.Sleep(120 * time.Second)
 	}
 
-	if len(hub.out_bound_peer_conns) == 0 {
-		hub.logger.Fatalln("p2p initialization error, try to set new seeds")
-	}
+	hub.logger.Infoln("rebuild outbound conns success")
 
 }
