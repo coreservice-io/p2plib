@@ -37,7 +37,7 @@ func decode_build_conn(port_bytes []byte) (uint16, error) {
 	return port, nil
 }
 
-func encode_peerlist(size_limit int, plist []*Peer) ([]byte, error) {
+func encode_peerlist(plist []*Peer) ([]byte, error) {
 	//len uint16 : 2 bytes
 	//peer: 4 bytes + 2 bytes (ip + port)
 
@@ -49,8 +49,8 @@ func encode_peerlist(size_limit int, plist []*Peer) ([]byte, error) {
 		return len_bytes, nil
 	}
 
-	if len(plist) > size_limit {
-		return nil, errors.New("encode_peerlist overlimit:" + strconv.Itoa(size_limit))
+	if len(plist) > REMOTE_PEERLIST_LIMIT {
+		return nil, errors.New("encode_peerlist overlimit:" + strconv.Itoa(REMOTE_PEERLIST_LIMIT))
 	}
 
 	binary.LittleEndian.PutUint16(len_bytes, uint16(len(plist)))
@@ -82,14 +82,14 @@ func encode_peerlist(size_limit int, plist []*Peer) ([]byte, error) {
 
 }
 
-func decode_peerlist(size_limit int, pl_bytes []byte) ([]*Peer, error) {
+func decode_peerlist(pl_bytes []byte) ([]*Peer, error) {
 	if len(pl_bytes) < 2 {
 		return nil, errors.New("decode_peerlist format error")
 	}
 
 	pl_len := binary.LittleEndian.Uint16(pl_bytes[0:2])
-	if int(pl_len) > size_limit {
-		return nil, errors.New("decode_peerlist overlimit:" + strconv.Itoa(size_limit))
+	if int(pl_len) > REMOTE_PEERLIST_LIMIT {
+		return nil, errors.New("decode_peerlist overlimit:" + strconv.Itoa(REMOTE_PEERLIST_LIMIT))
 	}
 
 	if pl_len == 0 {

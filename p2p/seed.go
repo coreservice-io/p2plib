@@ -1,7 +1,6 @@
 package p2p
 
 import (
-	"errors"
 	"math/rand"
 )
 
@@ -15,11 +14,9 @@ type SeedManager struct {
 	PeerPool []*Peer
 }
 
-func (sm *SeedManager) update_peers_from_seeds(seeds_limit int) {
+func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 
-	pick_seed := sm.Seeds[rand.Intn(len(sm.Seeds))]
-
-	pc := NewPeerConn(nil, true, &Peer{Ip: pick_seed.Host, Port: pick_seed.Port}, nil)
+	pc := NewPeerConn(nil, true, &Peer{Ip: host, Port: port}, nil)
 	dial_err := pc.Dial()
 	if dial_err != nil {
 		return
@@ -30,22 +27,25 @@ func (sm *SeedManager) update_peers_from_seeds(seeds_limit int) {
 		return
 	}
 
-	plist, pl_err := decode_peerlist(seeds_limit, rmsg)
+	plist, pl_err := decode_peerlist(rmsg)
 	if pl_err != nil {
 		return
 	}
 
-	sm.PeerPool = append(sm.PeerPool, plist...)
-
+	sm.PeerPool = append(plist, sm.PeerPool...)
+	sm.PeerPool = sm.PeerPool[0:REMOTE_PEERLIST_LIMIT]
 }
 
-func (sm *SeedManager) SamplingPeer() (*Peer, error) {
-
-	if len(sm.PeerPool) == 0 {
-		if len(sm.Seeds) == 0 {
-			return nil, errors.New("seeds empty")
-		}
-
+func (sm *SeedManager) SamplingPeersFromSeed() {
+	if len(sm.Seeds) > 0 {
+		pick_seed := sm.Seeds[rand.Intn(len(sm.Seeds))]
+		sm.update_peer_pool(pick_seed.Host, pick_seed.Port)
 	}
-	return nil, nil
+}
+
+func (sm *SeedManager) SamplingPeersFromPeer() {
+	if len(sm.PeerPool) > 0 {
+		pick_peer := sm.PeerPool[rand.Intn(len(sm.PeerPool))]
+		sm.update_peer_pool(pick_peer.Ip, pick_peer.Port)
+	}
 }
