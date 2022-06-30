@@ -152,6 +152,7 @@ func (hub *Hub) build_inbound_conn(peer *Peer) error {
 
 }
 
+// build conn from dbkv
 func (hub *Hub) rebuild_last_outbound_conns() {
 	plist, err := get_outbounds(*hub.kvdb)
 	if err != nil {
@@ -163,6 +164,22 @@ func (hub *Hub) rebuild_last_outbound_conns() {
 		hub.dail_outbound_conn(peer)
 	}
 
+}
+
+//periodically set the outbound conns to dbkv
+func (hub *Hub) refresh_last_outbound_conns() {
+	time.Sleep(300 * time.Second)
+	hub.out_bound_peer_lock.Lock()
+	defer hub.out_bound_peer_lock.Unlock()
+
+	plist := []*Peer{}
+	for _, out_pc := range hub.out_bound_peer_conns {
+		plist = append(plist, &Peer{
+			Ip:   out_pc.Peer.Ip,
+			Port: out_pc.Peer.Port,
+		})
+	}
+	set_outbounds(*hub.kvdb, plist)
 }
 
 func (hub *Hub) start_server() error {
@@ -350,4 +367,6 @@ func (hub *Hub) Start() {
 	} else {
 		go hub.build_peer_outbound()
 	}
+
+	go hub.refresh_last_outbound_conns()
 }
