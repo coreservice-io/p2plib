@@ -21,7 +21,7 @@ type HubConfig struct {
 	P2p_inbound_limit       uint // set this to be big for seed nodes
 	P2p_outbound_limit      uint // ==0 for seed nodes
 	Conn_pool_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
-	Only_seed_outbound      bool // for seed node you can do this
+	Only_seed_outbound      bool // set to true only for official seeding node
 }
 
 type Hub struct {
