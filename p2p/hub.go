@@ -20,7 +20,8 @@ type HubConfig struct {
 	P2p_live_check_duration time.Duration
 	P2p_inbound_limit       uint // set this to be big for seed nodes
 	P2p_outbound_limit      uint // ==0 for seed nodes
-	Conn_pool_limit         uint //how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
+	Conn_pool_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
+	Only_seed_outbound      bool // for seed node you can do this
 }
 
 type Hub struct {
@@ -41,8 +42,6 @@ type Hub struct {
 	hanlder map[string]func([]byte) []byte
 
 	seed_manager *SeedManager
-
-	boot bool
 }
 
 func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubConfig, logger log.Logger) *Hub {
@@ -57,7 +56,6 @@ func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubCo
 		out_bound_peer_conns: map[string]*PeerConn{},
 		hanlder:              map[string]func([]byte) []byte{},
 		seed_manager:         sm,
-		boot:                 false,
 	}
 }
 
@@ -250,12 +248,6 @@ func (hub *Hub) start_server() error {
 
 			} else {
 
-				//if not boot yet,don't allow the inbound for safety reason
-				if !hub.boot {
-					conn.Close()
-					return
-				}
-
 				NewPeerConn(hub, false, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
 					if err != nil {
 						hub.logger.Errorln("inbound connection error:", err)
@@ -278,48 +270,84 @@ func (hub *Hub) start_server() error {
 	return nil
 }
 
-func (hub *Hub) Start() {
-
-	hub.start_server()
-	if hub.config.P2p_outbound_limit > 0 {
-		hub.boot_conns()
-	}
-	hub.boot = true
-}
-
-func (hub *Hub) boot_conns() {
-	//process
-	//1. try to connect to old outbound connections which saved in dbkv
-	hub.logger.Infoln("try rebuild last outbound connections")
-	hub.rebuild_last_outbound_conns()
-	time.Sleep(30 * time.Second)
+func (hub *Hub) build_seed_outbound() {
 
 	for {
-		time.Sleep(60 * time.Second)
-		if len(hub.out_bound_peer_conns) != 0 {
-			break
-		}
-		hub.logger.Infoln("try rebuild outbound conns from seed")
-		//try from seeds
-		hub.seed_manager.SamplingPeersFromSeed()
-		for t := 0; t < 3; t++ {
-			hub.seed_manager.SamplingPeersFromPeer()
+		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
+			hub.logger.Infoln("outboud reach limit")
+			time.Sleep(30 * time.Second)
+			continue
 		}
 
-		for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
-			s_p := hub.seed_manager.get_peer()
-			if s_p != nil {
-				hub.dail_outbound_conn(&Peer{Ip: s_p.Ip, Port: s_p.Port})
+		if len(hub.seed_manager.Seeds) == 0 {
+			hub.logger.Errorln("no seed exist")
+			time.Sleep(30 * time.Second)
+			continue
+		}
+
+		for _, seed := range hub.seed_manager.Seeds {
+			seed_ip, err := hub.seed_manager.get_ip(seed)
+			if err != nil {
+				hub.logger.Errorln("seed get_ip error,", err)
+				continue
+			}
+
+			if hub.out_bound_peer_conns[seed_ip] == nil {
+				hub.dail_outbound_conn(&Peer{Ip: seed_ip, Port: seed.Port})
 			}
 		}
 
-		time.Sleep(60 * time.Second)
-		if len(hub.out_bound_peer_conns) != 0 {
-			break
+		hub.logger.Infoln("build_seed_outbound sleep to next cycle")
+		time.Sleep(300 * time.Second)
+	}
+}
+
+func (hub *Hub) build_peer_outbound() {
+
+	for {
+		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
+			hub.logger.Infoln("outboud reach limit")
+			time.Sleep(30 * time.Second)
+			continue
 		}
-		time.Sleep(120 * time.Second)
+
+		if len(hub.out_bound_peer_conns) == 0 {
+			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
+			hub.rebuild_last_outbound_conns()
+			time.Sleep(60 * time.Second)
+		}
+
+		if len(hub.out_bound_peer_conns) == 0 {
+			hub.seed_manager.SamplingPeersFromSeed()
+			for t := 0; t < 3; t++ {
+				hub.seed_manager.SamplingPeersFromPeer()
+			}
+
+			for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
+				s_p := hub.seed_manager.get_peer()
+				if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil {
+					hub.dail_outbound_conn(&Peer{Ip: s_p.Ip, Port: s_p.Port})
+				}
+			}
+			time.Sleep(600 * time.Second)
+		}
+
+		if len(hub.out_bound_peer_conns) != 0 {
+			//pick connect from tried table
+			time.Sleep(30 * time.Second)
+		}
+
 	}
 
-	hub.logger.Infoln("rebuild outbound conns success")
+}
 
+func (hub *Hub) Start() {
+
+	hub.start_server()
+
+	if hub.config.Only_seed_outbound {
+		go hub.build_seed_outbound()
+	} else {
+		go hub.build_peer_outbound()
+	}
 }

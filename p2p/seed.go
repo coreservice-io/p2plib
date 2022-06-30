@@ -1,8 +1,14 @@
 package p2p
 
 import (
+	"errors"
 	"math/rand"
+	"net"
+
+	"github.com/coreservice-io/reference"
 )
+
+const IP_NOT_FOUND = "ip_not_found"
 
 type Seed struct {
 	Host string //either ip or domain name
@@ -12,6 +18,38 @@ type Seed struct {
 type SeedManager struct {
 	Seeds    []*Seed
 	PeerPool []*Peer
+	ref      *reference.Reference
+}
+
+func (sm *SeedManager) get_ip(seed *Seed) (string, error) {
+
+	if seed == nil || seed.Host == "" {
+		return "", errors.New("seed host empty")
+	}
+
+	key := "seed_ip:" + seed.Host
+	value, _ := sm.ref.Get(key)
+	if value != nil {
+		return *value.(*string), nil
+	}
+
+	ipvalue := IP_NOT_FOUND
+
+	ips, _ := net.LookupIP(seed.Host)
+	for _, ip := range ips {
+		if ipv4 := ip.To4(); ipv4 != nil {
+			ipvalue = ipv4.String()
+		}
+	}
+
+	if ipvalue == IP_NOT_FOUND {
+		sm.ref.Set(key, IP_NOT_FOUND, 300)
+		return "", errors.New(IP_NOT_FOUND)
+	} else {
+		sm.ref.Set(key, IP_NOT_FOUND, 1800)
+	}
+
+	return ipvalue, nil
 }
 
 func (sm *SeedManager) get_peer() *Peer {
