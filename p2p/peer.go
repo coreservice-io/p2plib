@@ -100,7 +100,7 @@ func (pc *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
 
 func (pc *PeerConn) reg_build_conn() *PeerConn {
 	pc.rpc_client.Register(METHOD_BUILD_CONN, func(input []byte) []byte {
-		defer pc.Close() //close the conn as the conn is no longer used
+
 		port, err := decode_build_conn(input)
 		if err != nil {
 			return []byte(MSG_PORT_ERR)
@@ -120,7 +120,7 @@ func (pc *PeerConn) reg_build_conn() *PeerConn {
 		if len(pc.Hub.in_bound_peer_conns) > int(pc.Hub.config.P2p_inbound_limit) {
 			return []byte(MSG_OVERLIMIT_ERR)
 		}
-		go pc.Hub.build_inbound_conn(pc.Peer)
+		go build_inbound_conn(pc.Hub, pc.Peer)
 		return []byte(MSG_APPROVED)
 	})
 	return pc
@@ -136,6 +136,14 @@ func (pc *PeerConn) reg_peerlist() *PeerConn {
 func (pc *PeerConn) reg_ping() *PeerConn {
 	pc.rpc_client.Register(METHOD_PING, func(input []byte) []byte {
 		return []byte(MSG_PONG)
+	})
+	return pc
+}
+
+func (pc *PeerConn) reg_close() *PeerConn {
+	pc.rpc_client.Register(METHOD_CLOSE, func(input []byte) []byte {
+		defer pc.Close()
+		return []byte(METHOD_CLOSE)
 	})
 	return pc
 }

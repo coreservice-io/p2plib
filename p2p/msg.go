@@ -12,6 +12,7 @@ import (
 const METHOD_BUILD_CONN = "build_conn"
 const METHOD_PEERLIST = "peerlist"
 const METHOD_PING = "ping"
+const METHOD_CLOSE = "close"
 
 //msg
 const MSG_IP_OVERLAP_ERR = "ip_overlap_err"
