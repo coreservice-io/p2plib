@@ -12,16 +12,17 @@ import (
 )
 
 type HubConfig struct {
-	Hub_peer                *Peer
-	P2p_version             uint16
-	P2p_sub_version         uint16
-	P2p_body_max_bytes      uint32
-	P2p_method_max_bytes    uint8
-	P2p_live_check_duration time.Duration
-	P2p_inbound_limit       uint // set this to be big for seed nodes
-	P2p_outbound_limit      uint // ==0 for seed nodes
-	Conn_pool_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
-	Only_seed_outbound      bool // set to true only for official seeding node
+	Hub_peer                  *Peer
+	P2p_version               uint16
+	P2p_sub_version           uint16
+	P2p_body_max_bytes        uint32
+	P2p_method_max_bytes      uint8
+	P2p_live_check_duration   time.Duration
+	P2p_inbound_limit         uint // set this to be big for seed nodes
+	P2p_inbound_ip_black_list []string
+	P2p_outbound_limit        uint // ==0 for seed nodes
+	Conn_pool_limit           uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
+
 }
 
 type Hub struct {
@@ -167,7 +168,7 @@ func (hub *Hub) rebuild_last_outbound_conns() {
 }
 
 //periodically set the outbound conns to dbkv
-func (hub *Hub) refresh_last_outbound_conns() {
+func (hub *Hub) deamon_update_outbound_conns() {
 	time.Sleep(300 * time.Second)
 	hub.out_bound_peer_lock.Lock()
 	defer hub.out_bound_peer_lock.Unlock()
@@ -287,39 +288,7 @@ func (hub *Hub) start_server() error {
 	return nil
 }
 
-func (hub *Hub) build_seed_outbound() {
-
-	for {
-		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
-			hub.logger.Infoln("outboud reach limit")
-			time.Sleep(30 * time.Second)
-			continue
-		}
-
-		if len(hub.seed_manager.Seeds) == 0 {
-			hub.logger.Errorln("no seed exist")
-			time.Sleep(30 * time.Second)
-			continue
-		}
-
-		for _, seed := range hub.seed_manager.Seeds {
-			seed_ip, err := hub.seed_manager.get_ip(seed)
-			if err != nil {
-				hub.logger.Errorln("seed get_ip error,", err)
-				continue
-			}
-
-			if hub.out_bound_peer_conns[seed_ip] == nil {
-				hub.dail_outbound_conn(&Peer{Ip: seed_ip, Port: seed.Port})
-			}
-		}
-
-		hub.logger.Infoln("build_seed_outbound sleep to next cycle")
-		time.Sleep(300 * time.Second)
-	}
-}
-
-func (hub *Hub) build_peer_outbound() {
+func (hub *Hub) deamon_outbound_conns() {
 
 	for {
 		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
@@ -349,8 +318,10 @@ func (hub *Hub) build_peer_outbound() {
 			time.Sleep(600 * time.Second)
 		}
 
+		//[eclipse attack] never pick from tried table when no outbound connection established yet
 		if len(hub.out_bound_peer_conns) != 0 {
 			//pick connect from tried table
+
 			time.Sleep(30 * time.Second)
 		}
 
@@ -362,11 +333,7 @@ func (hub *Hub) Start() {
 
 	hub.start_server()
 
-	if hub.config.Only_seed_outbound {
-		go hub.build_seed_outbound()
-	} else {
-		go hub.build_peer_outbound()
-	}
+	go hub.deamon_outbound_conns()
 
-	go hub.refresh_last_outbound_conns()
+	go hub.deamon_update_outbound_conns()
 }
