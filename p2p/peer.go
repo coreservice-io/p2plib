@@ -20,14 +20,12 @@ type PeerConn struct {
 	Peer           *Peer
 	conn           *net.Conn
 	rpc_client     *byte_rpc.Client
-	outbound       bool //either outbound or inbound
 	close_callback func(*PeerConn, error)
 }
 
-func NewPeerConn(hub *Hub, is_outbound bool, peer *Peer, close_callback func(*PeerConn, error)) *PeerConn {
+func NewPeerConn(hub *Hub, peer *Peer, close_callback func(*PeerConn, error)) *PeerConn {
 	return &PeerConn{
 		Peer:           peer,
-		outbound:       is_outbound,
 		close_callback: close_callback,
 		Hub:            hub,
 	}
@@ -54,13 +52,15 @@ func (peerConn *PeerConn) RegisterRpcHandlers(handlers map[string]func([]byte) [
 }
 
 func (peerConn *PeerConn) Dial() error {
+	return peerConn.DialWithTimeOut(15 * time.Second)
+}
+
+func (peerConn *PeerConn) DialWithTimeOut(timeout time.Duration) error {
 	if peerConn.conn != nil {
 		return nil
 	}
-
 	endpoint := peerConn.Peer.Ip + ":" + strconv.FormatUint(uint64(peerConn.Peer.Port), 10)
-
-	dialer := net.Dialer{Timeout: 15 * time.Second}
+	dialer := net.Dialer{Timeout: timeout}
 	conn, err := dialer.Dial("tcp", endpoint)
 	if err != nil {
 		return errors.New("buildInboundConn err:" + endpoint)
@@ -88,7 +88,9 @@ func (peerConn *PeerConn) Run() *PeerConn {
 }
 
 func (pc *PeerConn) Close() {
-	pc.close_callback(pc, nil)
+	if pc.close_callback != nil {
+		pc.close_callback(pc, nil)
+	}
 }
 
 func (pc *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
@@ -177,7 +179,7 @@ func (pc *PeerConn) reg_build_inbound() *PeerConn {
 		}
 
 		pc.Peer.Port = port
-		inbound_peer := NewPeerConn(pc.Hub, true, &Peer{
+		inbound_peer := NewPeerConn(pc.Hub, &Peer{
 			Ip:   pc.Peer.Ip,
 			Port: pc.Peer.Port,
 		}, func(pc *PeerConn, err error) {

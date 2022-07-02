@@ -134,14 +134,20 @@ func (hub *Hub) start_server() error {
 			}
 
 			ip := conn.RemoteAddr().(*net.TCPAddr).IP.String()
+			if hub.ip_black_list[ip] {
+				hub.logger.Debugln("ip banned", ip)
+				conn.Close()
+				continue
+			}
 
 			//check increase counter
 			if !hub.increase_conn_counter(ip) {
+				hub.logger.Debugln("increase_conn_counter failed", ip)
 				conn.Close()
 			}
 
 			////////////////////////////////////////////////
-			pc := NewPeerConn(hub, false, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
+			pc := NewPeerConn(hub, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
 				if err != nil {
 					hub.logger.Errorln("connection close with error:", err)
 				}
@@ -160,7 +166,7 @@ func (hub *Hub) start_server() error {
 			//close the conn which is used for build_conn callback
 			time.AfterFunc(hub.config.P2p_live_check_duration, func() {
 				outb_pc := hub.out_bound_peer_conns[ip]
-				if outb_pc != nil && *outb_pc.conn == conn {
+				if outb_pc != nil && outb_pc.conn == &conn {
 					//conn became outbound conn
 					hub.logger.Debugln("conn became outbound conn ,won't close it")
 				} else {

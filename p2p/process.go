@@ -1,6 +1,36 @@
 package p2p
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+func ping_peer(p *Peer, cb func(error)) {
+
+	pc := NewPeerConn(nil, &Peer{
+		Ip:   p.Ip,
+		Port: p.Port,
+	}, nil)
+
+	err := pc.DialWithTimeOut(5 * time.Second)
+	if err != nil {
+		cb(err)
+		return
+	}
+
+	pr, perr := pc.SendMsg(METHOD_PING, nil)
+	if perr != nil {
+		cb(perr)
+		return
+	}
+	if string(pr) != MSG_PONG {
+		cb(errors.New("ping result error"))
+		return
+	}
+
+	pc.SendMsg(METHOD_CLOSE, nil)
+	cb(nil)
+}
 
 func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 	hub.out_bound_peer_lock.Lock()
@@ -13,7 +43,7 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 		return err
 	}
 
-	outbound_peer := NewPeerConn(nil, true, &Peer{
+	outbound_peer := NewPeerConn(nil, &Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
 	}, nil)
@@ -34,7 +64,7 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 
 // build conn from dbkv
 func rebuild_outbound_conns_from_kvdb(hub *Hub) {
-	plist, err := get_outbounds(*hub.kvdb)
+	plist, err := kvdb_get_outbounds(*hub.kvdb)
 	if err != nil {
 		hub.logger.Errorln("rebuild_last_outbound_conns err:", err)
 		return
@@ -58,14 +88,14 @@ func deamon_update_outbound_conns(hub *Hub) {
 			Port: out_pc.Peer.Port,
 		})
 	}
-	set_outbounds(*hub.kvdb, plist)
+	kvdb_set_outbounds(*hub.kvdb, plist)
 }
 
 func deamon_keep_outbound_conns(hub *Hub) {
 
 	for {
 		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
-			hub.logger.Infoln("outboud reach limit")
+			hub.logger.Infoln("outbound reach limit")
 			time.Sleep(30 * time.Second)
 			continue
 		}
@@ -75,6 +105,7 @@ func deamon_keep_outbound_conns(hub *Hub) {
 		if len(hub.out_bound_peer_conns) == 0 {
 			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
 			rebuild_outbound_conns_from_kvdb(hub)
+			kvdb_set_outbounds(*hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
 			time.Sleep(60 * time.Second)
 		}
 

@@ -20,19 +20,15 @@ func SHA256Uint32(input string) uint32 {
 const TRIED_TABLE = "tried_table"
 
 type Table struct {
-	Bucket map[uint32]map[uint16]*Peer `json:bucket` //bucketnum ,offset => peer
+	Bucket map[uint32]map[uint16]*Peer `json:bucket` //bucket num ,offset => peer
 }
 
 type TableManager struct {
-	new_table               *Table
-	new_table_bucket_num    uint32
-	new_table_bucket_size   uint16
-	tried_table             *Table
-	tried_table_bucket_num  uint32
-	tried_table_bucket_size uint16
-	kvdb                    KVDB
-	logger                  log.Logger
-	random_code             uint32
+	new_table   *Table
+	tried_table *Table
+	kvdb        KVDB
+	logger      log.Logger
+	random_code uint32
 }
 
 func (tm *TableManager) Reset() {
@@ -68,8 +64,8 @@ func (tm *TableManager) AddPeerToNewTable(p *Peer) {
 		return
 	}
 
-	ip_bucket_offset := (SHA256Uint32(ip_split[0]+"."+ip_split[1]) + tm.random_code) % tm.new_table_bucket_num
-	ip_bucket_internal_offset := (SHA256Uint32(ip_split[2]+"."+ip_split[3]) + tm.random_code) % uint32(tm.new_table_bucket_size)
+	ip_bucket_offset := (SHA256Uint32(ip_split[0]+"."+ip_split[1]) + tm.random_code) % NEW_TABLE_BUCKET_NUM
+	ip_bucket_internal_offset := (SHA256Uint32(ip_split[2]+"."+ip_split[3]) + tm.random_code) % uint32(BUCKET_SIZE)
 
 	tm.new_table.Bucket[ip_bucket_offset][uint16(ip_bucket_internal_offset)] = p
 
@@ -89,19 +85,6 @@ func (tm *TableManager) deamon_save_tried_table() {
 		}
 	}
 }
-
-// func (pc *PeerConn) ping_peer(p *Peer, cb func(error)) {
-// 	pr, perr := pc.SendMsg(METHOD_PING, nil)
-// 	if perr != nil {
-// 		cb(perr)
-// 		return
-// 	}
-// 	if string(pr) != MSG_PONG {
-// 		cb(errors.New("ping result error"))
-// 		return
-// 	}
-// 	cb(nil)
-// }
 
 func (tm *TableManager) deamon_fill_tried_table() {
 

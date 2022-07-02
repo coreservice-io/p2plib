@@ -8,7 +8,7 @@ type KVDB interface {
 	Get(key string) ([]byte, error)
 }
 
-func set_outbounds(kvdb KVDB, pl []*Peer) error {
+func kvdb_set_outbounds(kvdb KVDB, pl []*Peer) error {
 	key := "outbounds"
 	pl_bytes, err := json.Marshal(&pl)
 	if err != nil {
@@ -17,7 +17,7 @@ func set_outbounds(kvdb KVDB, pl []*Peer) error {
 	return kvdb.Set(key, pl_bytes)
 }
 
-func get_outbounds(kvdb KVDB) ([]*Peer, error) {
+func kvdb_get_outbounds(kvdb KVDB) ([]*Peer, error) {
 	key := "outbounds"
 	pl_bytes, err := kvdb.Get(key)
 	if err != nil {

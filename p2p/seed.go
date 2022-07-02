@@ -61,7 +61,7 @@ func (sm *SeedManager) get_peer() *Peer {
 
 func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 
-	pc := NewPeerConn(nil, true, &Peer{Ip: host, Port: port}, nil)
+	pc := NewPeerConn(nil, &Peer{Ip: host, Port: port}, nil)
 	dial_err := pc.Dial()
 	if dial_err != nil {
 		return
