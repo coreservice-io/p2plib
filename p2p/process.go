@@ -112,6 +112,8 @@ func deamon_keep_outbound_conns(hub *Hub) {
 			continue
 		}
 
+		//todo if some connection break (maybe caused by feeler connection )
+		//try to reconnect the old connection
 		if len(hub.out_bound_peer_conns) == 0 {
 			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
 			rebuild_outbound_conns_from_kvdb(hub)
