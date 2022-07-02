@@ -9,16 +9,17 @@ import (
 )
 
 //method
-const METHOD_BUILD_CONN = "build_conn"
+const METHOD_BUILD_INBOUND = "build_inbound"
+const METHOD_BUILD_OUTBOUND = "build_outbound"
 const METHOD_PEERLIST = "peerlist"
 const METHOD_PING = "ping"
 const METHOD_CLOSE = "close"
 
 //msg
 const MSG_IP_OVERLAP_ERR = "ip_overlap_err"
-const MSG_OVERLIMIT_ERR = "overlimit_err"
 const MSG_PORT_ERR = "port_err"
 const MSG_APPROVED = "approved"
+const MSG_REJECTED = "rejected"
 const MSG_PONG = "pong"
 
 func encode_build_conn(port uint16) ([]byte, error) {

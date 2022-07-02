@@ -30,8 +30,8 @@ type Hub struct {
 	ref    *reference.Reference
 	logger log.Logger
 
-	conn_pool      map[string]*net.Conn
-	conn_pool_lock sync.Mutex
+	conn_counter map[string]uint8
+	conn_lock    sync.Mutex
 
 	in_bound_peer_conns map[string]*PeerConn
 	in_bound_peer_lock  sync.Mutex
@@ -44,6 +44,18 @@ type Hub struct {
 	seed_manager *SeedManager
 
 	ip_black_list map[string]bool //forbid connection from this ip
+}
+
+func (hub *Hub) increase_conn_counter(ip string) bool {
+	hub.conn_lock.Lock()
+	defer hub.conn_lock.Unlock()
+
+	if hub.conn_counter[ip] >= IP_CONN_LIMIT {
+		return false
+	}
+
+	hub.conn_counter[ip] = hub.conn_counter[ip] + 1
+	return true
 }
 
 func (hub *Hub) AddIpBlackList(ip string) {
@@ -63,7 +75,7 @@ func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubCo
 		kvdb:                 kvdb,
 		ref:                  ref,
 		logger:               logger,
-		conn_pool:            make(map[string]*net.Conn),
+		conn_counter:         make(map[string]uint8),
 		in_bound_peer_conns:  make(map[string]*PeerConn),
 		out_bound_peer_conns: map[string]*PeerConn{},
 		hanlder:              map[string]func([]byte) []byte{},
@@ -107,94 +119,55 @@ func (hub *Hub) start_server() error {
 		for {
 
 			/////conn incoming ///////
-			hub.conn_pool_lock.Lock()
-			if len(hub.conn_pool) > int(hub.config.Conn_pool_limit) {
-				hub.conn_pool_lock.Unlock()
+			hub.conn_lock.Lock()
+			if len(hub.conn_counter) > int(hub.config.Conn_pool_limit) {
+				hub.conn_lock.Unlock()
 				time.Sleep(5 * time.Second)
 				continue
 			}
-			hub.conn_pool_lock.Unlock()
+			hub.conn_lock.Unlock()
 
 			conn, err := listener.Accept() //block here if no connection
 			if err != nil {
 				conn.Close()
+				continue
 			}
 
 			ip := conn.RemoteAddr().(*net.TCPAddr).IP.String()
 
-			hub.conn_pool_lock.Lock()
-			hub.in_bound_peer_lock.Lock()
-			hub.out_bound_peer_lock.Lock()
-
-			if ibc, ok := hub.in_bound_peer_conns[ip]; ok { //check to overwrite
-				ibc.Close()
-				delete(hub.in_bound_peer_conns, ip)
+			//check increase counter
+			if !hub.increase_conn_counter(ip) {
+				conn.Close()
 			}
-			if ibc, ok := hub.out_bound_peer_conns[ip]; ok { //check to overwrite
-				ibc.Close()
-				delete(hub.out_bound_peer_conns, ip)
-			}
-			if _, ok := hub.conn_pool[ip]; ok { //check to overwrite
-				(*hub.conn_pool[ip]).Close()
-				delete(hub.conn_pool, ip)
-			}
-
-			hub.conn_pool[ip] = &conn
-			hub.out_bound_peer_lock.Unlock()
-			hub.in_bound_peer_lock.Unlock()
-			hub.conn_pool_lock.Unlock()
 
 			////////////////////////////////////////////////
-
-			//check if incoming conn is the peer's callback which i try to build a outbound connection with
-			if hub.is_outbound_target(ip) {
-
-				hub.out_bound_peer_lock.Lock()
-
-				out_pc := NewPeerConn(hub, true, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
-					if err != nil {
-						hub.logger.Errorln("outboud connection liveness check error:", err)
-					}
-					hub.conn_pool_lock.Lock()
-					hub.out_bound_peer_lock.Lock()
-					if hub.out_bound_peer_conns[pc.Peer.Ip] == pc {
-						delete(hub.out_bound_peer_conns, pc.Peer.Ip)
-					}
-					if hub.conn_pool[pc.Peer.Ip] == pc.conn {
-						delete(hub.conn_pool, pc.Peer.Ip)
-					}
-					hub.conn_pool_lock.Unlock()
-					hub.out_bound_peer_lock.Unlock()
-				}).SetConn(&conn).reg_ping().reg_peerlist().reg_close()
-
-				//register all the handlers
-				err := out_pc.RegisterRpcHandlers(hub.hanlder)
+			pc := NewPeerConn(hub, false, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
 				if err != nil {
-					hub.logger.Errorln("RegRpcHandlers error", err)
+					hub.logger.Errorln("connection close with error:", err)
 				}
 
-				hub.out_bound_peer_conns[ip] = out_pc
-				out_pc.Run()
+				hub.out_bound_peer_lock.Lock()
+				hub.conn_lock.Lock()
+				if hub.out_bound_peer_conns[ip] == pc {
+					delete(hub.out_bound_peer_conns, ip)
+				}
+				hub.conn_counter[ip] = hub.conn_counter[ip] - 1
+				hub.conn_lock.Unlock()
 				hub.out_bound_peer_lock.Unlock()
 
-			} else {
+			}).SetConn(&conn).reg_close().reg_ping().reg_peerlist().reg_build_inbound().reg_build_outbound().Run()
 
-				NewPeerConn(hub, false, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
-					if err != nil {
-						hub.logger.Errorln("inbound connection error:", err)
-					}
-					hub.conn_pool_lock.Lock()
-					if hub.conn_pool[pc.Peer.Ip] == pc.conn { //maybe already be replaced , only del the old one
-						delete(hub.conn_pool, pc.Peer.Ip)
-					}
-					hub.conn_pool_lock.Unlock()
-				}).SetConn(&conn).reg_ping().reg_peerlist().reg_build_conn().reg_close().Run()
+			//close the conn which is used for build_conn callback
+			time.AfterFunc(hub.config.P2p_live_check_duration, func() {
+				outb_pc := hub.out_bound_peer_conns[ip]
+				if outb_pc != nil && *outb_pc.conn == conn {
+					//conn became outbound conn
+					hub.logger.Debugln("conn became outbound conn ,won't close it")
+				} else {
+					pc.Close()
+				}
+			})
 
-				//close the conn which is used for build_conn callback
-				time.AfterFunc(hub.config.P2p_live_check_duration, func() {
-					conn.Close()
-				})
-			}
 		}
 	}()
 

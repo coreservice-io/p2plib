@@ -23,55 +23,13 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 		return err
 	}
 
-	_, err = outbound_peer.SendMsg(METHOD_BUILD_CONN, port_bytes)
+	_, err = outbound_peer.SendMsg(METHOD_BUILD_OUTBOUND, port_bytes)
 	if err != nil {
 		return err
 	}
 	outbound_peer.SendMsg(METHOD_CLOSE, nil)
-
 	outbound_peer.Close()
-
 	return nil
-}
-
-func build_inbound_conn(hub *Hub, peer *Peer) error {
-	////////////try to build inbound connection//////////////////
-	hub.in_bound_peer_lock.Lock()
-
-	inbound_peer := NewPeerConn(hub, true, &Peer{
-		Ip:   peer.Ip,
-		Port: peer.Port,
-	}, func(pc *PeerConn, err error) {
-		if err != nil {
-			hub.logger.Errorln("inbound connection liveness check error:", err)
-		}
-		hub.in_bound_peer_lock.Lock()
-		delete(hub.in_bound_peer_conns, peer.Ip)
-		hub.in_bound_peer_lock.Unlock()
-	})
-
-	hub.in_bound_peer_conns[peer.Ip] = inbound_peer
-	//register all the handlers
-	err := inbound_peer.reg_peerlist().RegisterRpcHandlers(hub.hanlder)
-	if err != nil {
-		hub.logger.Errorln("RegRpcHandlers error", err)
-	}
-	hub.in_bound_peer_lock.Unlock()
-
-	/////////dail remote tcp////////
-	dial_err := inbound_peer.Dial()
-	if dial_err != nil {
-		hub.in_bound_peer_lock.Lock()
-		if hub.in_bound_peer_conns[inbound_peer.Peer.Ip] == inbound_peer {
-			delete(hub.in_bound_peer_conns, inbound_peer.Peer.Ip)
-		}
-		hub.in_bound_peer_lock.Unlock()
-		return dial_err
-	}
-	////////////////////////////////
-	inbound_peer.Run()
-	return nil
-
 }
 
 // build conn from dbkv
