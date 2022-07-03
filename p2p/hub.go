@@ -44,6 +44,8 @@ type Hub struct {
 	seed_manager *SeedManager
 
 	ip_black_list map[string]bool //forbid connection from this ip
+
+	table_manager *TableManager //table manager
 }
 
 func (hub *Hub) increase_conn_counter(ip string) bool {
@@ -68,7 +70,18 @@ func (hub *Hub) RemoveIpBlackList(ip string) {
 	}
 }
 
-func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubConfig, logger log.Logger) *Hub {
+func NewHub(kvdb *KVDB, ref *reference.Reference, ip_black_list map[string]bool, sm *SeedManager, config *HubConfig, logger log.Logger) *Hub {
+
+	tm := &TableManager{
+		new_table:        &table{},
+		tried_table:      &table{},
+		tried_table_task: []*feeler_peer{},
+		kvdb:             *kvdb,
+		logger:           logger,
+		random_code:      0,
+	}
+
+	tm.initialize()
 
 	return &Hub{
 		config:               config,
@@ -80,7 +93,8 @@ func NewHub(kvdb *KVDB, ref *reference.Reference, sm *SeedManager, config *HubCo
 		out_bound_peer_conns: map[string]*PeerConn{},
 		hanlder:              map[string]func([]byte) []byte{},
 		seed_manager:         sm,
-		ip_black_list:        make(map[string]bool),
+		ip_black_list:        ip_black_list,
+		table_manager:        tm,
 	}
 }
 
@@ -184,7 +198,12 @@ func (hub *Hub) Start() {
 
 	hub.start_server()
 
+	go deamon_feeler_connection(hub.table_manager)
+
+	go deamon_save_tried_table(hub.table_manager)
+
 	go deamon_keep_outbound_conns(hub)
 
 	go deamon_update_outbound_conns(hub)
+
 }
