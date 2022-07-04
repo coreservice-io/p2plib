@@ -32,8 +32,9 @@ type table struct {
 }
 
 type TableManager struct {
-	new_table_lock sync.Mutex
-	new_table      *table
+	new_table_lock   sync.Mutex
+	new_table        *table
+	new_table_buffer []*Peer // a limited-size fifo buffer used for search
 
 	tried_table_lock sync.Mutex
 	tried_table      *table
@@ -44,12 +45,36 @@ type TableManager struct {
 	random_code uint32
 }
 
+func NewTableManager(kvdb KVDB, logger log.Logger) (*TableManager, error) {
+
+	if kvdb == nil {
+		return nil, errors.New("kvdb empty error")
+	}
+
+	if logger == nil {
+		return nil, errors.New("logger empty error")
+	}
+
+	return &TableManager{
+		new_table: &table{
+			Bucket:          map[uint32]map[uint16]*feeler_peer{},
+			Update_unixtime: 0,
+		},
+		tried_table: &table{
+			Bucket:          map[uint32]map[uint16]*feeler_peer{},
+			Update_unixtime: 0,
+		},
+		new_table_buffer: []*Peer{},
+		tried_table_task: []*feeler_peer{},
+		kvdb:             kvdb,
+		logger:           logger,
+		random_code:      0,
+	}, nil
+}
+
 func (tm *TableManager) initialize() {
 	rand.Seed(time.Now().UnixNano())
-
-	//
 	tm.random_code = rand.Uint32()
-
 	//recover from kvdb
 	tt := &table{}
 	tt_bytes, tt_err := tm.kvdb.Get(TRIED_TABLE)
@@ -94,26 +119,63 @@ func (tm *TableManager) get_peers_from_tried_table(size_limit int) []*Peer {
 	return result
 }
 
-func (tm *TableManager) add_peer_to_new_table(p *Peer) error {
-	//check ipv4 format correct
-	ip := net.ParseIP(p.Ip)
-	if ip == nil || ip.To4() == nil {
-		return errors.New("ip format error")
+func (tm *TableManager) get_peers_from_new_table(size_limit int) []*Peer {
+	tm.new_table_lock.Lock()
+	defer tm.new_table_lock.Unlock()
+	result := []*Peer{}
+
+	for i, p := range tm.new_table_buffer {
+		if i >= size_limit {
+			break
+		}
+		result = append(result, &Peer{
+			Ip:   p.Ip,
+			Port: p.Port,
+		})
+	}
+	return result
+}
+
+func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
+
+	tm.new_table_lock.Lock()
+	defer tm.new_table_lock.Unlock()
+
+	for _, peer := range pl {
+		//check ipv4 format correct
+		ip := net.ParseIP(peer.Ip)
+		if ip == nil || ip.To4() == nil {
+			continue
+		}
+
+		ip_split := strings.Split(peer.Ip, ".")
+		//check port format correct
+		if peer.Port == 0 || peer.Port > 65535 {
+			continue
+		}
+
+		bucket_p := tm.get_new_bucket_position(ip_split)
+		bucket_offset := tm.get_bucket_offset(ip_split)
+
+		if tm.new_table.Bucket[bucket_p][bucket_offset] != nil {
+			old_ip := strings.Join(tm.new_table.Bucket[bucket_p][bucket_offset].Ip_split, ".")
+			if peer.Ip == old_ip {
+				continue
+			}
+		}
+
+		tm.new_table.Bucket[bucket_p][bucket_offset] = &feeler_peer{
+			Ip_split:    ip_split,
+			Port:        peer.Port,
+			Feeler_time: 0,
+		}
+
+		tm.new_table_buffer = append(tm.new_table_buffer, &Peer{
+			Ip:   peer.Ip,
+			Port: peer.Port,
+		})
 	}
 
-	ip_split := strings.Split(p.Ip, ".")
-
-	//check port format correct
-	if p.Port == 0 || p.Port > 65535 {
-		return errors.New("port range [0,65535] error")
-	}
-
-	tm.new_table.Bucket[tm.get_new_bucket_position(ip_split)][tm.get_bucket_offset(ip_split)] = &feeler_peer{
-		Ip_split:    ip_split,
-		Port:        p.Port,
-		Feeler_time: 0,
-	}
-	return nil
 }
 
 func (tm *TableManager) feel_new_table() {
@@ -251,4 +313,40 @@ func deamon_feeler_connection(tm *TableManager) {
 		}
 		last_feeler_time = time.Now().Unix()
 	}
+}
+
+func deamon_update_new_table_buffer(tm *TableManager) {
+
+	for {
+		tm.new_table_lock.Lock()
+
+		counter := 0
+		nt_bucket_keys := reflect.ValueOf(tm.new_table.Bucket).MapKeys()
+		rand.Shuffle(len(nt_bucket_keys), func(i, j int) { nt_bucket_keys[i], nt_bucket_keys[j] = nt_bucket_keys[j], nt_bucket_keys[i] })
+
+		for _, bk := range nt_bucket_keys {
+			for _, peer := range tm.new_table.Bucket[bk.Interface().(uint32)] {
+				tm.new_table_buffer = append(tm.new_table_buffer, &Peer{
+					Ip:   strings.Join(peer.Ip_split, "."),
+					Port: peer.Port,
+				})
+				counter++
+			}
+
+			if counter >= PEERLIST_LIMIT {
+				break
+			}
+		}
+
+		if len(tm.new_table_buffer) > PEERLIST_LIMIT {
+			tm.new_table_buffer = tm.new_table_buffer[0:PEERLIST_LIMIT]
+		}
+
+		tm.new_table_lock.Unlock()
+
+		//every 60 seconds do the job
+		time.Sleep(time.Second * 60)
+
+	}
+
 }

@@ -103,13 +103,49 @@ func (pc *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
 
 func (pc *PeerConn) reg_peerlist() *PeerConn {
 	pc.rpc_client.Register(METHOD_PEERLIST, func(input []byte) []byte {
-		return []byte("this is a list of peers")
+
+		pl := make(map[string]*Peer)
+
+		pc.Hub.out_bound_peer_lock.Lock()
+		for _, opc := range pc.Hub.out_bound_peer_conns {
+			pl[opc.Peer.Ip] = opc.Peer
+		}
+		pc.Hub.out_bound_peer_lock.Unlock()
+
+		pc.Hub.in_bound_peer_lock.Lock()
+		for _, ipc := range pc.Hub.in_bound_peer_conns {
+			pl[ipc.Peer.Ip] = ipc.Peer
+		}
+		pc.Hub.in_bound_peer_lock.Unlock()
+
+		need_more := PEERLIST_LIMIT - len(pl)
+
+		if need_more > 0 {
+			//todo pick 70% from tried table and 30% from new table
+			for _, tt_p := range pc.Hub.table_manager.get_peers_from_tried_table(int(float32(need_more) * 0.7)) {
+				pl[tt_p.Ip] = tt_p
+			}
+
+			for _, nt_p := range pc.Hub.table_manager.get_peers_from_new_table(int(float32(need_more) * 0.3)) {
+				pl[nt_p.Ip] = nt_p
+			}
+		}
+
+		///////////////////////////////
+		to_encode := []*Peer{}
+		for _, p := range pl {
+			to_encode = append(to_encode, p)
+		}
+
+		return encode_peerlist(to_encode)
 	})
 	return pc
 }
 
 func (pc *PeerConn) reg_ping() *PeerConn {
 	pc.rpc_client.Register(METHOD_PING, func(input []byte) []byte {
+
+		//todo change this to hub key to detect self connection
 		return []byte(MSG_PONG)
 	})
 	return pc

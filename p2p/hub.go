@@ -12,7 +12,7 @@ import (
 )
 
 type HubConfig struct {
-	Hub_peer                *Peer
+	Hub_port                uint16
 	P2p_version             uint16
 	P2p_sub_version         uint16
 	P2p_body_max_bytes      uint32
@@ -21,12 +21,11 @@ type HubConfig struct {
 	P2p_inbound_limit       uint // set this to be big for seed nodes
 	P2p_outbound_limit      uint // ==0 for seed nodes
 	Conn_pool_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
-
 }
 
 type Hub struct {
 	config *HubConfig
-	kvdb   *KVDB
+	kvdb   KVDB
 	ref    *reference.Reference
 	logger log.Logger
 
@@ -70,21 +69,19 @@ func (hub *Hub) RemoveIpBlackList(ip string) {
 	}
 }
 
-func NewHub(kvdb *KVDB, ref *reference.Reference, ip_black_list map[string]bool, sm *SeedManager, config *HubConfig, logger log.Logger) *Hub {
+func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, sm *SeedManager, config *HubConfig, logger log.Logger) (*Hub, error) {
 
-	tm := &TableManager{
-		new_table: &table{
-			Bucket:          map[uint32]map[uint16]*feeler_peer{},
-			Update_unixtime: 0,
-		},
-		tried_table: &table{
-			Bucket:          map[uint32]map[uint16]*feeler_peer{},
-			Update_unixtime: 0,
-		},
-		tried_table_task: []*feeler_peer{},
-		kvdb:             *kvdb,
-		logger:           logger,
-		random_code:      0,
+	if config == nil {
+		return nil, errors.New("config empty error")
+	}
+
+	if sm == nil || sm.Seeds == nil || sm.PeerPool == nil || sm.Ref == nil {
+		return nil, errors.New("seed manager empty error, check |sm.Seeds|sm.PeerPool|sm.ref|")
+	}
+
+	tm, tm_err := NewTableManager(kvdb, logger)
+	if tm_err != nil {
+		return nil, tm_err
 	}
 
 	tm.initialize()
@@ -101,7 +98,7 @@ func NewHub(kvdb *KVDB, ref *reference.Reference, ip_black_list map[string]bool,
 		seed_manager:         sm,
 		ip_black_list:        ip_black_list,
 		table_manager:        tm,
-	}
+	}, nil
 }
 
 func (hub *Hub) RegisterHandlers(method string, handler func([]byte) []byte) error {
@@ -130,7 +127,7 @@ func (hub *Hub) set_outbound_target(ip string) {
 
 func (hub *Hub) start_server() error {
 
-	listener, err := net.Listen("tcp", ":"+strconv.Itoa(int(hub.config.Hub_peer.Port)))
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(int(hub.config.Hub_port)))
 	if err != nil {
 		return err
 	}
@@ -204,8 +201,8 @@ func (hub *Hub) Start() {
 
 	hub.start_server()
 
-	go deamon_feeler_connection(hub.table_manager)
+	//go deamon_feeler_connection(hub.table_manager)
 	go deamon_keep_outbound_conns(hub)
-	go deamon_update_outbound_conns(hub)
-	go deamon_save_tried_table(hub.table_manager)
+	//go deamon_update_outbound_conns(hub)
+	//go deamon_save_tried_table(hub.table_manager)
 }

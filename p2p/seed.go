@@ -18,7 +18,7 @@ type Seed struct {
 type SeedManager struct {
 	Seeds    []*Seed
 	PeerPool []*Peer
-	ref      *reference.Reference
+	Ref      *reference.Reference
 }
 
 func (sm *SeedManager) get_ip(seed *Seed) (string, error) {
@@ -28,7 +28,7 @@ func (sm *SeedManager) get_ip(seed *Seed) (string, error) {
 	}
 
 	key := "seed_ip:" + seed.Host
-	value, _ := sm.ref.Get(key)
+	value, _ := sm.Ref.Get(key)
 	if value != nil {
 		return *value.(*string), nil
 	}
@@ -43,10 +43,10 @@ func (sm *SeedManager) get_ip(seed *Seed) (string, error) {
 	}
 
 	if ipvalue == IP_NOT_FOUND {
-		sm.ref.Set(key, IP_NOT_FOUND, 300)
+		sm.Ref.Set(key, IP_NOT_FOUND, 300)
 		return "", errors.New(IP_NOT_FOUND)
 	} else {
-		sm.ref.Set(key, IP_NOT_FOUND, 1800)
+		sm.Ref.Set(key, IP_NOT_FOUND, 1800)
 	}
 
 	return ipvalue, nil
@@ -78,7 +78,7 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 	}
 
 	sm.PeerPool = append(plist, sm.PeerPool...)
-	sm.PeerPool = sm.PeerPool[0:REMOTE_PEERLIST_LIMIT]
+	sm.PeerPool = sm.PeerPool[0:PEERLIST_LIMIT]
 }
 
 func (sm *SeedManager) sampling_peers_from_seed() {

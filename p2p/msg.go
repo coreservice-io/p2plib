@@ -39,7 +39,7 @@ func decode_build_conn(port_bytes []byte) (uint16, error) {
 	return port, nil
 }
 
-func encode_peerlist(plist []*Peer) ([]byte, error) {
+func encode_peerlist(plist []*Peer) []byte {
 	//len uint16 : 2 bytes
 	//peer: 4 bytes + 2 bytes (ip + port)
 
@@ -48,11 +48,7 @@ func encode_peerlist(plist []*Peer) ([]byte, error) {
 	len_bytes := make([]byte, 2)
 	if len(plist) == 0 {
 		binary.LittleEndian.PutUint16(len_bytes, 0)
-		return len_bytes, nil
-	}
-
-	if len(plist) > REMOTE_PEERLIST_LIMIT {
-		return nil, errors.New("encode_peerlist overlimit:" + strconv.Itoa(REMOTE_PEERLIST_LIMIT))
+		return len_bytes
 	}
 
 	binary.LittleEndian.PutUint16(len_bytes, uint16(len(plist)))
@@ -61,9 +57,13 @@ func encode_peerlist(plist []*Peer) ([]byte, error) {
 
 	for _, peer := range plist {
 
+		if peer.Port > 65535 {
+			continue
+		}
+
 		ipv4 := net.ParseIP(peer.Ip).To4()
 		if ipv4 == nil {
-			return nil, errors.New("ipv4 format error:" + peer.Ip)
+			continue
 		}
 
 		octets := strings.Split(peer.Ip, ".")
@@ -72,15 +72,15 @@ func encode_peerlist(plist []*Peer) ([]byte, error) {
 		octet2, _ := strconv.Atoi(octets[2])
 		octet3, _ := strconv.Atoi(octets[3])
 		ip_bytes := []byte{byte(octet0), byte(octet1), byte(octet2), byte(octet3)}
-		result = append(result, ip_bytes...)
 
 		port_bytes := make([]byte, 2)
 		binary.LittleEndian.PutUint16(port_bytes, peer.Port)
 
+		result = append(result, ip_bytes...)
 		result = append(result, port_bytes...)
 	}
 
-	return result, nil
+	return result
 
 }
 
@@ -90,8 +90,8 @@ func decode_peerlist(pl_bytes []byte) ([]*Peer, error) {
 	}
 
 	pl_len := binary.LittleEndian.Uint16(pl_bytes[0:2])
-	if int(pl_len) > REMOTE_PEERLIST_LIMIT {
-		return nil, errors.New("decode_peerlist overlimit:" + strconv.Itoa(REMOTE_PEERLIST_LIMIT))
+	if int(pl_len) > PEERLIST_LIMIT {
+		return nil, errors.New("decode_peerlist overlimit:" + strconv.Itoa(PEERLIST_LIMIT))
 	}
 
 	if pl_len == 0 {

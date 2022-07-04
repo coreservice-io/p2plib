@@ -81,7 +81,7 @@ func deamon_update_outbound_conns(hub *Hub) {
 			Port: out_pc.Peer.Port,
 		})
 	}
-	kvdb_set_outbounds(*hub.kvdb, plist)
+	kvdb_set_outbounds(hub.kvdb, plist)
 }
 
 func deamon_keep_outbound_conns(hub *Hub) {
@@ -98,15 +98,15 @@ func deamon_keep_outbound_conns(hub *Hub) {
 		if len(hub.out_bound_peer_conns) == 0 {
 			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
 
-			plist, err := kvdb_get_outbounds(*hub.kvdb)
+			plist, err := kvdb_get_outbounds(hub.kvdb)
 			if err != nil {
-				hub.logger.Errorln("rebuild_last_outbound_conns err:", err)
+				hub.logger.Warnln("kvdb_get_outbounds warning:", err)
 			} else {
 				if len(plist) > 0 {
 					for _, peer := range plist {
 						request_build_outbound_conn(hub, peer)
 					}
-					kvdb_set_outbounds(*hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
+					kvdb_set_outbounds(hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
 					time.Sleep(30 * time.Second)
 				}
 			}
