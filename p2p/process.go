@@ -23,7 +23,8 @@ func ping_peer(p *Peer, cb func(error)) {
 		cb(perr)
 		return
 	}
-	if string(pr) != MSG_PONG {
+
+	if len(pr) != 8 {
 		cb(errors.New("ping result error"))
 		return
 	}
@@ -44,33 +45,42 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 
 	hub.set_outbound_target(peer.Ip)
 
-	port_bytes, err := encode_build_conn(peer.Port)
-	if err != nil {
-		return err
-	}
+	port_bytes := encode_build_conn(peer.Port)
 
 	outbound_peer := NewPeerConn(nil, &Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
 	}, nil)
 
-	err = outbound_peer.Dial()
+	err := outbound_peer.Dial()
 	if err != nil {
 		return err
 	}
 
-	_, err = outbound_peer.SendMsg(METHOD_BUILD_OUTBOUND, port_bytes)
-	if err != nil {
-		return err
+	pr, perr := outbound_peer.SendMsg(METHOD_PING, nil)
+	if perr != nil {
+		return perr
 	}
+
+	peer_hub_id, peer_hub_id_err := decode_ping(pr)
+	if peer_hub_id_err != nil {
+		return errors.New("ping result error")
+	}
+
+	if peer_hub_id != hub.id {
+		_, err = outbound_peer.SendMsg(METHOD_BUILD_OUTBOUND, port_bytes)
+		if err != nil {
+			return err
+		}
+	}
+
 	outbound_peer.SendMsg(METHOD_CLOSE, nil)
 	outbound_peer.Close()
 	return nil
 }
 
-//periodically set the outbound conns to dbkv
-func deamon_update_outbound_conns(hub *Hub) {
-	time.Sleep(300 * time.Second)
+//set the outbound conns to kvdb
+func update_kvdb_outbound_conns(hub *Hub) {
 	hub.out_bound_peer_lock.Lock()
 	defer hub.out_bound_peer_lock.Unlock()
 
@@ -87,13 +97,14 @@ func deamon_update_outbound_conns(hub *Hub) {
 func deamon_keep_outbound_conns(hub *Hub) {
 
 	for {
+
 		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
 			hub.logger.Infoln("outbound reach limit")
 			time.Sleep(30 * time.Second)
 			continue
 		}
 
-		//todo if some connection break (maybe caused by feeler connection )
+		//if some connection break (maybe caused by feeler connection )
 		//try to reconnect the old connection
 		if len(hub.out_bound_peer_conns) == 0 {
 			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
@@ -141,5 +152,8 @@ func deamon_keep_outbound_conns(hub *Hub) {
 				}
 			}
 		}
+
+		update_kvdb_outbound_conns(hub)
+
 	}
 }

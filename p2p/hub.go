@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"errors"
+	"math/rand"
 	"net"
 	"strconv"
 	"sync"
@@ -23,7 +24,13 @@ type HubConfig struct {
 	Conn_pool_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
 }
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 type Hub struct {
+	id uint64
+
 	config *HubConfig
 	kvdb   KVDB
 	ref    *reference.Reference
@@ -45,6 +52,7 @@ type Hub struct {
 	ip_black_list map[string]bool //forbid connection from this ip
 
 	table_manager *TableManager //table manager
+
 }
 
 func (hub *Hub) increase_conn_counter(ip string) bool {
@@ -98,6 +106,7 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 		seed_manager:         sm,
 		ip_black_list:        ip_black_list,
 		table_manager:        tm,
+		id:                   rand.Uint64(),
 	}, nil
 }
 
@@ -201,8 +210,9 @@ func (hub *Hub) Start() {
 
 	hub.start_server()
 
-	//go deamon_feeler_connection(hub.table_manager)
+	go deamon_feeler_connection(hub.table_manager)
+	go deamon_update_new_table_buffer(hub.table_manager)
+	go deamon_save_tried_table(hub.table_manager)
 	go deamon_keep_outbound_conns(hub)
-	//go deamon_update_outbound_conns(hub)
-	//go deamon_save_tried_table(hub.table_manager)
+
 }

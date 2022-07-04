@@ -20,18 +20,30 @@ const MSG_IP_OVERLAP_ERR = "ip_overlap_err"
 const MSG_PORT_ERR = "port_err"
 const MSG_APPROVED = "approved"
 const MSG_REJECTED = "rejected"
-const MSG_PONG = "pong"
 
-func encode_build_conn(port uint16) ([]byte, error) {
-	if port > 65535 {
-		return nil, errors.New("port range err:" + strconv.Itoa(int(port)))
+func encode_ping(hub_id uint64) []byte {
+	hub_id_bytes := make([]byte, 8)
+	binary.LittleEndian.PutUint64(hub_id_bytes, hub_id)
+	return hub_id_bytes
+}
+
+func decode_ping(ping_bytes []byte) (uint64, error) {
+	if len(ping_bytes) != 8 {
+		return 0, errors.New("decode_ping input error")
 	}
+	return binary.LittleEndian.Uint64(ping_bytes), nil
+}
+
+func encode_build_conn(port uint16) []byte {
 	port_bytes := make([]byte, 2)
 	binary.LittleEndian.PutUint16(port_bytes, port)
-	return port_bytes, nil
+	return port_bytes
 }
 
 func decode_build_conn(port_bytes []byte) (uint16, error) {
+	if len(port_bytes) != 2 {
+		return 0, errors.New("decode_build_conn input error")
+	}
 	port := binary.LittleEndian.Uint16(port_bytes)
 	if port > 65535 {
 		return port, errors.New("port range err:" + strconv.Itoa(int(port)))

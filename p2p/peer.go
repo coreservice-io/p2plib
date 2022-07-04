@@ -121,7 +121,7 @@ func (pc *PeerConn) reg_peerlist() *PeerConn {
 		need_more := PEERLIST_LIMIT - len(pl)
 
 		if need_more > 0 {
-			//todo pick 70% from tried table and 30% from new table
+
 			for _, tt_p := range pc.Hub.table_manager.get_peers_from_tried_table(int(float32(need_more) * 0.7)) {
 				pl[tt_p.Ip] = tt_p
 			}
@@ -144,9 +144,8 @@ func (pc *PeerConn) reg_peerlist() *PeerConn {
 
 func (pc *PeerConn) reg_ping() *PeerConn {
 	pc.rpc_client.Register(METHOD_PING, func(input []byte) []byte {
-
-		//todo change this to hub key to detect self connection
-		return []byte(MSG_PONG)
+		//change this to hub key to detect self connection
+		return []byte(encode_ping(pc.Hub.id))
 	})
 	return pc
 }
