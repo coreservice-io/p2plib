@@ -33,6 +33,12 @@ func ping_peer(p *Peer, cb func(error)) {
 }
 
 func request_build_outbound_conn(hub *Hub, peer *Peer) error {
+
+	if hub.out_bound_peer_conns[peer.Ip] != nil || hub.in_bound_peer_conns[peer.Ip] != nil {
+		hub.logger.Debugln("request_build_outbound_conn with ip exist in conns already,ip", peer.Ip)
+		return nil
+	}
+
 	hub.out_bound_peer_lock.Lock()
 	defer hub.out_bound_peer_lock.Unlock()
 
@@ -60,19 +66,6 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 	outbound_peer.SendMsg(METHOD_CLOSE, nil)
 	outbound_peer.Close()
 	return nil
-}
-
-// build conn from dbkv
-func rebuild_outbound_conns_from_kvdb(hub *Hub) {
-	plist, err := kvdb_get_outbounds(*hub.kvdb)
-	if err != nil {
-		hub.logger.Errorln("rebuild_last_outbound_conns err:", err)
-		return
-	}
-
-	for _, peer := range plist {
-		request_build_outbound_conn(hub, peer)
-	}
 }
 
 //periodically set the outbound conns to dbkv
@@ -104,9 +97,19 @@ func deamon_keep_outbound_conns(hub *Hub) {
 		//try to reconnect the old connection
 		if len(hub.out_bound_peer_conns) == 0 {
 			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
-			rebuild_outbound_conns_from_kvdb(hub)
-			kvdb_set_outbounds(*hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
-			time.Sleep(60 * time.Second)
+
+			plist, err := kvdb_get_outbounds(*hub.kvdb)
+			if err != nil {
+				hub.logger.Errorln("rebuild_last_outbound_conns err:", err)
+			} else {
+				if len(plist) > 0 {
+					for _, peer := range plist {
+						request_build_outbound_conn(hub, peer)
+					}
+					kvdb_set_outbounds(*hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
+					time.Sleep(30 * time.Second)
+				}
+			}
 		}
 
 		if len(hub.out_bound_peer_conns) == 0 {
@@ -121,16 +124,22 @@ func deamon_keep_outbound_conns(hub *Hub) {
 					request_build_outbound_conn(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
 				}
 			}
-			time.Sleep(600 * time.Second)
+			time.Sleep(60 * time.Second)
 		}
 
 		//[eclipse attack] never pick from tried table when no outbound connection established yet
 		if len(hub.out_bound_peer_conns) != 0 {
-			//pick connect from tried table
-
-			time.Sleep(30 * time.Second)
+			//pick connection from tried table
+			tt_peers := hub.table_manager.get_peers_from_tried_table(int(hub.config.P2p_outbound_limit))
+			for _, t_p := range tt_peers {
+				request_build_outbound_conn(hub, &Peer{Ip: t_p.Ip, Port: t_p.Port})
+			}
+			for i := 900; i >= 0; i-- {
+				time.Sleep(1 * time.Second)
+				if len(hub.out_bound_peer_conns) == 0 {
+					break
+				}
+			}
 		}
-
 	}
-
 }

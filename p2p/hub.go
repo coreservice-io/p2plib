@@ -73,8 +73,14 @@ func (hub *Hub) RemoveIpBlackList(ip string) {
 func NewHub(kvdb *KVDB, ref *reference.Reference, ip_black_list map[string]bool, sm *SeedManager, config *HubConfig, logger log.Logger) *Hub {
 
 	tm := &TableManager{
-		new_table:        &table{},
-		tried_table:      &table{},
+		new_table: &table{
+			Bucket:          map[uint32]map[uint16]*feeler_peer{},
+			Update_unixtime: 0,
+		},
+		tried_table: &table{
+			Bucket:          map[uint32]map[uint16]*feeler_peer{},
+			Update_unixtime: 0,
+		},
 		tried_table_task: []*feeler_peer{},
 		kvdb:             *kvdb,
 		logger:           logger,
@@ -199,11 +205,7 @@ func (hub *Hub) Start() {
 	hub.start_server()
 
 	go deamon_feeler_connection(hub.table_manager)
-
-	go deamon_save_tried_table(hub.table_manager)
-
 	go deamon_keep_outbound_conns(hub)
-
 	go deamon_update_outbound_conns(hub)
-
+	go deamon_save_tried_table(hub.table_manager)
 }
