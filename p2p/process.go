@@ -113,9 +113,9 @@ func deamon_keep_outbound_conns(hub *Hub) {
 		}
 
 		if len(hub.out_bound_peer_conns) == 0 {
-			hub.seed_manager.SamplingPeersFromSeed()
+			hub.seed_manager.sampling_peers_from_seed()
 			for t := 0; t < 3; t++ {
-				hub.seed_manager.SamplingPeersFromPeer()
+				hub.seed_manager.sampling_peers_from_peer()
 			}
 
 			for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {

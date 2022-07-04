@@ -81,14 +81,14 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 	sm.PeerPool = sm.PeerPool[0:REMOTE_PEERLIST_LIMIT]
 }
 
-func (sm *SeedManager) SamplingPeersFromSeed() {
+func (sm *SeedManager) sampling_peers_from_seed() {
 	if len(sm.Seeds) > 0 {
 		pick_seed := sm.Seeds[rand.Intn(len(sm.Seeds))]
 		sm.update_peer_pool(pick_seed.Host, pick_seed.Port)
 	}
 }
 
-func (sm *SeedManager) SamplingPeersFromPeer() {
+func (sm *SeedManager) sampling_peers_from_peer() {
 	if len(sm.PeerPool) > 0 {
 		pick_peer := sm.PeerPool[rand.Intn(len(sm.PeerPool))]
 		sm.update_peer_pool(pick_peer.Ip, pick_peer.Port)
