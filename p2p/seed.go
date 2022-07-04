@@ -1,9 +1,10 @@
 package p2p
 
 import (
-	"errors"
 	"math/rand"
 	"net"
+	"strconv"
+	"time"
 
 	"github.com/coreservice-io/reference"
 )
@@ -21,38 +22,7 @@ type SeedManager struct {
 	Ref      *reference.Reference
 }
 
-func (sm *SeedManager) get_ip(seed *Seed) (string, error) {
-
-	if seed == nil || seed.Host == "" {
-		return "", errors.New("seed host empty")
-	}
-
-	key := "seed_ip:" + seed.Host
-	value, _ := sm.Ref.Get(key)
-	if value != nil {
-		return *value.(*string), nil
-	}
-
-	ipvalue := IP_NOT_FOUND
-
-	ips, _ := net.LookupIP(seed.Host)
-	for _, ip := range ips {
-		if ipv4 := ip.To4(); ipv4 != nil {
-			ipvalue = ipv4.String()
-		}
-	}
-
-	if ipvalue == IP_NOT_FOUND {
-		sm.Ref.Set(key, IP_NOT_FOUND, 300)
-		return "", errors.New(IP_NOT_FOUND)
-	} else {
-		sm.Ref.Set(key, IP_NOT_FOUND, 1800)
-	}
-
-	return ipvalue, nil
-}
-
-func (sm *SeedManager) get_peer() *Peer {
+func (sm *SeedManager) get_random_peer() *Peer {
 	if len(sm.PeerPool) > 0 {
 		return sm.PeerPool[rand.Intn(len(sm.PeerPool))]
 	}
@@ -61,13 +31,15 @@ func (sm *SeedManager) get_peer() *Peer {
 
 func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 
-	pc := NewPeerConn(nil, &Peer{Ip: host, Port: port}, nil)
-	dial_err := pc.Dial()
-	if dial_err != nil {
+	///////////////
+	endpoint := host + ":" + strconv.FormatUint(uint64(port), 10)
+	dialer := net.Dialer{Timeout: 15 * time.Second}
+	conn, err := dialer.Dial("tcp", endpoint)
+	if err != nil {
 		return
 	}
-
-	rmsg, err := pc.SendMsg(METHOD_PEERLIST, nil)
+	///////////////
+	rmsg, err := NewPeerConn(nil, nil, nil).SetConn(&conn).SendMsg(METHOD_PEERLIST, nil)
 	if err != nil {
 		return
 	}
@@ -78,7 +50,10 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 	}
 
 	sm.PeerPool = append(plist, sm.PeerPool...)
-	sm.PeerPool = sm.PeerPool[0:PEERLIST_LIMIT]
+	if len(sm.PeerPool) > PEERLIST_LIMIT {
+		sm.PeerPool = sm.PeerPool[0:PEERLIST_LIMIT]
+	}
+
 }
 
 func (sm *SeedManager) sampling_peers_from_seed() {

@@ -138,8 +138,8 @@ func deamon_keep_outbounds(hub *Hub) {
 			}
 
 			for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
-				s_p := hub.seed_manager.get_peer()
-				if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil {
+				s_p := hub.seed_manager.get_random_peer()
+				if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil && hub.in_bound_peer_conns[s_p.Ip] == nil {
 					request_build_outbound_conn(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
 				}
 			}
@@ -153,6 +153,8 @@ func deamon_keep_outbounds(hub *Hub) {
 			for _, t_p := range tt_peers {
 				request_build_outbound_conn(hub, &Peer{Ip: t_p.Ip, Port: t_p.Port})
 			}
+
+			//allergic sleep
 			for i := 900; i >= 0; i-- {
 				time.Sleep(1 * time.Second)
 				if len(hub.out_bound_peer_conns) == 0 {
