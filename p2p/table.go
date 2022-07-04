@@ -105,7 +105,7 @@ func (tm *TableManager) add_peer_to_new_table(p *Peer) error {
 
 	//check port format correct
 	if p.Port == 0 || p.Port > 65535 {
-		errors.New("port range [0,65535] error")
+		return errors.New("port range [0,65535] error")
 	}
 
 	tm.new_table.Bucket[tm.get_new_bucket_position(ip_split)][tm.get_bucket_offset(ip_split)] = &feeler_peer{
