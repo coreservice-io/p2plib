@@ -94,7 +94,15 @@ func update_kvdb_outbound_conns(hub *Hub) {
 	kvdb_set_outbounds(hub.kvdb, plist)
 }
 
-func deamon_keep_outbound_conns(hub *Hub) {
+//retrieve from remote peers and update local peerlist
+func deamon_refresh_peerlist(hub *Hub) {
+
+	//to do
+	hub.table_manager.add_peers_to_new_table([]*Peer{})
+}
+
+//keep outbound connections exist
+func deamon_keep_outbounds(hub *Hub) {
 
 	for {
 

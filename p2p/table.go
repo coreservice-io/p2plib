@@ -272,7 +272,7 @@ func (tm *TableManager) feel_tried_table() {
 	}
 }
 
-func deamon_save_tried_table(tm *TableManager) {
+func deamon_save_kvdb_tried_table(tm *TableManager) {
 	for {
 		//save every 15mins
 		time.Sleep(15 * time.Minute)
@@ -293,16 +293,11 @@ func deamon_save_tried_table(tm *TableManager) {
 	}
 }
 
-func deamon_feeler_connection(tm *TableManager) {
-
-	last_feeler_time := time.Now().Unix()
-
+//feeler connections
+func deamon_feeler(tm *TableManager) {
 	for {
 		/////////////////////////////////
-		if time.Now().Unix()-last_feeler_time < FEELER_INTERVAL {
-			time.Sleep(time.Second * FEELER_INTERVAL)
-			continue
-		}
+		time.Sleep(time.Second * FEELER_INTERVAL)
 		/////////////////////////////////
 		if rand.Intn(2) == 1 {
 			//feel new table
@@ -311,7 +306,6 @@ func deamon_feeler_connection(tm *TableManager) {
 			//feel tried table
 			tm.feel_tried_table()
 		}
-		last_feeler_time = time.Now().Unix()
 	}
 }
 
