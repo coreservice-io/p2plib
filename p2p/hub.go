@@ -39,11 +39,14 @@ type Hub struct {
 	conn_counter map[string]uint8
 	conn_lock    sync.Mutex
 
-	in_bound_peer_conns map[string]*PeerConn
+	in_bound_peer_conns map[string]*PeerConn //ip => conn
 	in_bound_peer_lock  sync.Mutex
 
-	out_bound_peer_conns map[string]*PeerConn
+	out_bound_peer_conns map[string]*PeerConn //ip =>conn
 	out_bound_peer_lock  sync.Mutex
+
+	// conn_credit      map[string]int16 // 0-100,initialized with
+	// conn_credit_lock sync.Mutex
 
 	hanlder map[string]func([]byte) []byte
 
@@ -210,9 +213,9 @@ func (hub *Hub) Start() {
 
 	hub.start_server()
 
-	go deamon_feeler(hub.table_manager)
-	go deamon_update_new_table_buffer(hub.table_manager)
-	go deamon_save_kvdb_tried_table(hub.table_manager)
+	//go deamon_feeler(hub.table_manager)
+	//go deamon_update_new_table_buffer(hub.table_manager)
+	//go deamon_save_kvdb_tried_table(hub.table_manager)
 	go deamon_keep_outbounds(hub)
 	go deamon_refresh_peerlist(hub)
 

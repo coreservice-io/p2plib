@@ -97,8 +97,49 @@ func update_kvdb_outbound_conns(hub *Hub) {
 //retrieve from remote peers and update local peerlist
 func deamon_refresh_peerlist(hub *Hub) {
 
-	//to do
-	hub.table_manager.add_peers_to_new_table([]*Peer{})
+	for {
+
+		all_pcs := []*PeerConn{}
+
+		hub.in_bound_peer_lock.Lock()
+		hub.out_bound_peer_lock.Lock()
+
+		for _, pc := range hub.in_bound_peer_conns {
+			all_pcs = append(all_pcs, pc)
+		}
+
+		for _, pc := range hub.out_bound_peer_conns {
+			all_pcs = append(all_pcs, pc)
+		}
+
+		hub.in_bound_peer_lock.Unlock()
+		hub.out_bound_peer_lock.Unlock()
+
+		for _, pc := range all_pcs {
+
+			pl, pl_err := pc.SendMsg(METHOD_PEERLIST, nil)
+			if pl_err != nil {
+				hub.logger.Debugln("METHOD_PEERLIST err", pl_err)
+				continue
+			}
+
+			peer_list, err := decode_peerlist(pl)
+			if err != nil {
+				hub.logger.Debugln("decode_peerlist err", peer_list)
+				continue
+			}
+
+			if len(peer_list) == 0 {
+				continue
+			}
+
+			hub.table_manager.add_peers_to_new_table(peer_list)
+			break
+		}
+
+		time.Sleep(120 * time.Second)
+	}
+
 }
 
 //keep outbound connections exist
