@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/coreservice-io/log"
 	"github.com/coreservice-io/logrus_log"
 	"github.com/coreservice-io/p2plib/example"
 	"github.com/coreservice-io/p2plib/p2p"
@@ -36,6 +37,8 @@ func main() {
 		fmt.Println("llerr ", llerr)
 		return
 	}
+
+	logger.SetLevel(log.DebugLevel)
 
 	kvdb := example.NewP2pKVDB(levdb)
 	ref := reference.New()
