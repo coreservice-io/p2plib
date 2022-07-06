@@ -39,3 +39,5 @@
 2022-07-06 12:48:18 [WARN] kvdb_get_outbounds warning: leveldb: not found
 2022-07-06 12:49:41 [INFO] try rebuild last outbound connections from dbkv 
 2022-07-06 12:49:41 [WARN] kvdb_get_outbounds warning: leveldb: not found
+2022-07-06 13:02:11 [INFO] try rebuild last outbound connections from dbkv 
+2022-07-06 13:02:11 [WARN] kvdb_get_outbounds warning: leveldb: not found
