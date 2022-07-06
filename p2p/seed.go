@@ -17,14 +17,21 @@ type Seed struct {
 }
 
 type SeedManager struct {
-	Seeds    []*Seed
-	PeerPool []*Peer
-	Ref      *reference.Reference
+	seeds     []*Seed
+	peer_pool []*Peer
+	ref       *reference.Reference
 }
 
+func NewSeedManager(seeds []*Seed, ref *reference.Reference) *SeedManager {
+	return &SeedManager{
+		seeds:     seeds,
+		ref:       ref,
+		peer_pool: []*Peer{},
+	}
+}
 func (sm *SeedManager) get_random_peer() *Peer {
-	if len(sm.PeerPool) > 0 {
-		return sm.PeerPool[rand.Intn(len(sm.PeerPool))]
+	if len(sm.peer_pool) > 0 {
+		return sm.peer_pool[rand.Intn(len(sm.peer_pool))]
 	}
 	return nil
 }
@@ -39,7 +46,7 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 		return
 	}
 	///////////////
-	rmsg, err := NewPeerConn(nil, nil, nil).SetConn(&conn).SendMsg(METHOD_PEERLIST, nil)
+	rmsg, err := NewPeerConn(nil, nil, nil).SetConn(&conn).Run().SendMsg(METHOD_PEERLIST, nil)
 	if err != nil {
 		return
 	}
@@ -49,23 +56,23 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 		return
 	}
 
-	sm.PeerPool = append(plist, sm.PeerPool...)
-	if len(sm.PeerPool) > PEERLIST_LIMIT {
-		sm.PeerPool = sm.PeerPool[0:PEERLIST_LIMIT]
+	sm.peer_pool = append(plist, sm.peer_pool...)
+	if len(sm.peer_pool) > PEERLIST_LIMIT {
+		sm.peer_pool = sm.peer_pool[0:PEERLIST_LIMIT]
 	}
 
 }
 
 func (sm *SeedManager) sampling_peers_from_seed() {
-	if len(sm.Seeds) > 0 {
-		pick_seed := sm.Seeds[rand.Intn(len(sm.Seeds))]
+	if len(sm.seeds) > 0 {
+		pick_seed := sm.seeds[rand.Intn(len(sm.seeds))]
 		sm.update_peer_pool(pick_seed.Host, pick_seed.Port)
 	}
 }
 
 func (sm *SeedManager) sampling_peers_from_peer() {
-	if len(sm.PeerPool) > 0 {
-		pick_peer := sm.PeerPool[rand.Intn(len(sm.PeerPool))]
+	if len(sm.peer_pool) > 0 {
+		pick_peer := sm.peer_pool[rand.Intn(len(sm.peer_pool))]
 		sm.update_peer_pool(pick_peer.Ip, pick_peer.Port)
 	}
 }

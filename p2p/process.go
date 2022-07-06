@@ -17,6 +17,7 @@ func ping_peer(p *Peer, cb func(error)) {
 		cb(err)
 		return
 	}
+	pc.Run()
 
 	pr, perr := pc.SendMsg(METHOD_PING, nil)
 	if perr != nil {
@@ -56,6 +57,8 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 	if err != nil {
 		return err
 	}
+
+	outbound_peer.Run()
 
 	pr, perr := outbound_peer.SendMsg(METHOD_PING, nil)
 	if perr != nil {

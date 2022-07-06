@@ -86,7 +86,7 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 		return nil, errors.New("config empty error")
 	}
 
-	if sm == nil || sm.Seeds == nil || sm.PeerPool == nil || sm.Ref == nil {
+	if sm == nil || sm.seeds == nil || sm.peer_pool == nil || sm.ref == nil {
 		return nil, errors.New("seed manager empty error, check |sm.Seeds|sm.PeerPool|sm.ref|")
 	}
 

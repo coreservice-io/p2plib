@@ -41,8 +41,7 @@ func main() {
 	ref := reference.New()
 
 	hub, hub_err := p2p.NewHub(kvdb, ref, make(map[string]bool),
-		&p2p.SeedManager{Seeds: []*p2p.Seed{}, PeerPool: []*p2p.Peer{}, Ref: ref},
-		&p2p_hub_conf, logger)
+		p2p.NewSeedManager([]*p2p.Seed{}, ref), &p2p_hub_conf, logger)
 	if hub_err != nil {
 		fmt.Println("hub_err", hub_err)
 		return
