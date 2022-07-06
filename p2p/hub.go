@@ -100,7 +100,7 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 		Conn_closed_callback: nil,
 	}
 
-	tm, tm_err := NewTableManager(kvdb, logger)
+	tm, tm_err := new_table_manager(kvdb, logger)
 	if tm_err != nil {
 		return nil, tm_err
 	}

@@ -45,7 +45,7 @@ type TableManager struct {
 	random_code uint32
 }
 
-func NewTableManager(kvdb KVDB, logger log.Logger) (*TableManager, error) {
+func new_table_manager(kvdb KVDB, logger log.Logger) (*TableManager, error) {
 
 	if kvdb == nil {
 		return nil, errors.New("kvdb empty error")
