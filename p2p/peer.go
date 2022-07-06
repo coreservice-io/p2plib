@@ -40,22 +40,14 @@ func (peerConn *PeerConn) set_conn(conn *net.Conn) *PeerConn {
 	return peerConn
 }
 
-func (peerConn *PeerConn) register_rpc_handlers(handlers map[string]func([]byte) []byte) error {
-	if peerConn.rpc_client == nil {
-		return errors.New("rpc_client nil")
-	}
+func (peerConn *PeerConn) register_rpc_handlers(handlers map[string]func([]byte) []byte) {
 	for method_str, m_handler := range handlers {
 		peerConn.handlers[method_str] = m_handler
 	}
-	return nil
 }
 
-func (peerConn *PeerConn) register_rpc_handler(method_str string, m_handler func([]byte) []byte) error {
-	if peerConn.rpc_client == nil {
-		return errors.New("rpc_client nil")
-	}
+func (peerConn *PeerConn) register_rpc_handler(method_str string, m_handler func([]byte) []byte) {
 	peerConn.handlers[method_str] = m_handler
-	return nil
 }
 
 func (peerConn *PeerConn) start_heart_beat(check_interval time.Duration, closed_callback func(error)) {
@@ -202,12 +194,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 		}
 
 		//register all the handlers
-		err := pc.register_rpc_handlers(hub.hanlder)
-		if err != nil {
-			time.AfterFunc(time.Second*1, func() { pc.close() })
-			hub.logger.Errorln("METHOD_BUILD_INBOUND RegisterRpcHandlers error", err)
-			return []byte(MSG_REJECTED)
-		}
+		pc.register_rpc_handlers(hub.hanlder)
 
 		if len(hub.out_bound_peer_conns) > int(hub.config.P2p_outbound_limit) {
 			time.AfterFunc(time.Second*1, func() { pc.close() })
@@ -275,12 +262,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		})
 
 		//register all the handlers
-		err = inbound_peer.register_rpc_handlers(hub.hanlder)
-		if err != nil {
-			time.AfterFunc(time.Second*1, func() { inbound_peer.close() })
-			hub.logger.Errorln("METHOD_BUILD_OUTBOUND RegRpcHandlers error", err)
-			return []byte(MSG_REJECTED)
-		}
+		inbound_peer.register_rpc_handlers(hub.hanlder)
 
 		if len(hub.in_bound_peer_conns) > int(hub.config.P2p_inbound_limit) {
 			time.AfterFunc(time.Second*1, func() { inbound_peer.close() })
