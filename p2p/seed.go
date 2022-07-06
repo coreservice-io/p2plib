@@ -49,7 +49,7 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 		return
 	}
 	///////////////
-	rmsg, err := new_peer_conn(sm.byte_rpc_conf, nil, nil).set_conn(&conn).run().send_msg(METHOD_PEERLIST, nil)
+	rmsg, err := new_peer_conn(sm.byte_rpc_conf, nil, 0, nil).set_conn(&conn).run().send_msg(METHOD_PEERLIST, nil)
 	if err != nil {
 		return
 	}

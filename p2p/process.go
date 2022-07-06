@@ -10,9 +10,9 @@ func ping_peer(p *Peer, cb func(error)) {
 	pc := new_peer_conn(nil, &Peer{
 		Ip:   p.Ip,
 		Port: p.Port,
-	}, nil)
+	}, 0, nil)
 
-	err := pc.DialWithTimeOut(5 * time.Second)
+	err := pc.dail_with_timeout(5 * time.Second)
 	if err != nil {
 		cb(err)
 		return
@@ -51,9 +51,9 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 	outbound_peer := new_peer_conn(nil, &Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
-	}, nil)
+	}, 0, nil)
 
-	err := outbound_peer.Dial()
+	err := outbound_peer.dial()
 	if err != nil {
 		return err
 	}

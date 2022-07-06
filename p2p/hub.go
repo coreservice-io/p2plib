@@ -96,7 +96,6 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 		Sub_version:          config.P2p_sub_version,
 		Body_max_bytes:       config.P2p_body_max_bytes,
 		Method_max_bytes:     config.P2p_method_max_bytes,
-		Live_check_duration:  config.P2p_live_check_duration,
 		Conn_closed_callback: nil,
 	}
 
@@ -191,9 +190,8 @@ func (hub *Hub) start_server() error {
 				Sub_version:          hub.config.P2p_sub_version,
 				Body_max_bytes:       hub.config.P2p_body_max_bytes,
 				Method_max_bytes:     hub.config.P2p_method_max_bytes,
-				Live_check_duration:  hub.config.P2p_live_check_duration,
 				Conn_closed_callback: nil,
-			}, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
+			}, &Peer{Ip: ip}, hub.config.P2p_live_check_duration, func(pc *PeerConn) {
 				if err != nil {
 					hub.logger.Errorln("connection close with error:", err)
 				}
