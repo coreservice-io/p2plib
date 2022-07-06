@@ -39,15 +39,20 @@ func (peerConn *PeerConn) set_conn(conn *net.Conn) *PeerConn {
 }
 
 func (peerConn *PeerConn) register_rpc_handlers(handlers map[string]func([]byte) []byte) error {
-
 	if peerConn.rpc_client == nil {
 		return errors.New("rpc_client nil")
 	}
-
 	for method_str, m_handler := range handlers {
 		peerConn.handlers[method_str] = m_handler
 	}
+	return nil
+}
 
+func (peerConn *PeerConn) register_rpc_handler(method_str string, m_handler func([]byte) []byte) error {
+	if peerConn.rpc_client == nil {
+		return errors.New("rpc_client nil")
+	}
+	peerConn.handlers[method_str] = m_handler
 	return nil
 }
 
@@ -108,7 +113,7 @@ func (pc *PeerConn) send_msg(method string, msg []byte) ([]byte, error) {
 }
 
 func (pc *PeerConn) reg_peerlist(hub *Hub) *PeerConn {
-	pc.rpc_client.Register(METHOD_PEERLIST, func(input []byte) []byte {
+	pc.register_rpc_handler(METHOD_PEERLIST, func(input []byte) []byte {
 
 		pl := make(map[string]*Peer)
 
@@ -149,7 +154,7 @@ func (pc *PeerConn) reg_peerlist(hub *Hub) *PeerConn {
 }
 
 func (pc *PeerConn) reg_ping(hub *Hub) *PeerConn {
-	pc.rpc_client.Register(METHOD_PING, func(input []byte) []byte {
+	pc.register_rpc_handler(METHOD_PING, func(input []byte) []byte {
 		//change this to hub key to detect self connection
 		return []byte(encode_ping(hub.id))
 	})
@@ -157,7 +162,7 @@ func (pc *PeerConn) reg_ping(hub *Hub) *PeerConn {
 }
 
 func (pc *PeerConn) reg_close() *PeerConn {
-	pc.rpc_client.Register(METHOD_CLOSE, func(input []byte) []byte {
+	pc.register_rpc_handler(METHOD_CLOSE, func(input []byte) []byte {
 		defer pc.close()
 		return []byte(METHOD_CLOSE)
 	})
@@ -166,7 +171,7 @@ func (pc *PeerConn) reg_close() *PeerConn {
 
 func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
-	pc.rpc_client.Register(METHOD_BUILD_INBOUND, func(input []byte) []byte {
+	pc.register_rpc_handler(METHOD_BUILD_INBOUND, func(input []byte) []byte {
 		if !hub.is_outbound_target(pc.peer.Ip) {
 			time.AfterFunc(time.Second*1, func() { pc.close() })
 			return []byte(MSG_REJECTED)
@@ -212,7 +217,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 }
 
 func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
-	pc.rpc_client.Register(METHOD_BUILD_OUTBOUND, func(input []byte) []byte {
+	pc.register_rpc_handler(METHOD_BUILD_OUTBOUND, func(input []byte) []byte {
 
 		port, err := decode_build_conn(input)
 		if err != nil {
