@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coreservice-io/byte_rpc"
 	"github.com/coreservice-io/log"
 	"github.com/coreservice-io/reference"
 )
@@ -88,6 +89,15 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 
 	if sm == nil || sm.seeds == nil || sm.peer_pool == nil || sm.ref == nil {
 		return nil, errors.New("seed manager empty error, check |sm.Seeds|sm.PeerPool|sm.ref|")
+	}
+
+	sm.byte_rpc_conf = &byte_rpc.Config{
+		Version:              config.P2p_version,
+		Sub_version:          config.P2p_sub_version,
+		Body_max_bytes:       config.P2p_body_max_bytes,
+		Method_max_bytes:     config.P2p_method_max_bytes,
+		Live_check_duration:  config.P2p_live_check_duration,
+		Conn_closed_callback: nil,
 	}
 
 	tm, tm_err := NewTableManager(kvdb, logger)
@@ -176,7 +186,14 @@ func (hub *Hub) start_server() error {
 			}
 
 			////////////////////////////////////////////////
-			pc := NewPeerConn(hub, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
+			pc := NewPeerConn(&byte_rpc.Config{
+				Version:              hub.config.P2p_version,
+				Sub_version:          hub.config.P2p_sub_version,
+				Body_max_bytes:       hub.config.P2p_body_max_bytes,
+				Method_max_bytes:     hub.config.P2p_method_max_bytes,
+				Live_check_duration:  hub.config.P2p_live_check_duration,
+				Conn_closed_callback: nil,
+			}, &Peer{Ip: ip}, func(pc *PeerConn, err error) {
 				if err != nil {
 					hub.logger.Errorln("connection close with error:", err)
 				}
@@ -190,7 +207,9 @@ func (hub *Hub) start_server() error {
 				hub.conn_lock.Unlock()
 				hub.out_bound_peer_lock.Unlock()
 
-			}).SetConn(&conn).reg_close().reg_ping().reg_peerlist().reg_build_inbound().reg_build_outbound().Run()
+			})
+
+			pc.SetConn(&conn).reg_close().reg_ping(hub).reg_peerlist(hub).reg_build_inbound(hub).reg_build_outbound(hub).Run()
 
 			//close the conn which is used for build_conn callback
 			time.AfterFunc(hub.config.P2p_live_check_duration, func() {

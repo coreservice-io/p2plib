@@ -90,8 +90,8 @@ func update_kvdb_outbound_conns(hub *Hub) {
 	plist := []*Peer{}
 	for _, out_pc := range hub.out_bound_peer_conns {
 		plist = append(plist, &Peer{
-			Ip:   out_pc.Peer.Ip,
-			Port: out_pc.Peer.Port,
+			Ip:   out_pc.peer.Ip,
+			Port: out_pc.peer.Port,
 		})
 	}
 	kvdb_set_outbounds(hub.kvdb, plist)

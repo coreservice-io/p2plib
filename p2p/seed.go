@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/coreservice-io/byte_rpc"
 	"github.com/coreservice-io/reference"
 )
 
@@ -17,9 +18,10 @@ type Seed struct {
 }
 
 type SeedManager struct {
-	seeds     []*Seed
-	peer_pool []*Peer
-	ref       *reference.Reference
+	byte_rpc_conf *byte_rpc.Config
+	seeds         []*Seed
+	peer_pool     []*Peer
+	ref           *reference.Reference
 }
 
 func NewSeedManager(seeds []*Seed, ref *reference.Reference) *SeedManager {
@@ -29,6 +31,7 @@ func NewSeedManager(seeds []*Seed, ref *reference.Reference) *SeedManager {
 		peer_pool: []*Peer{},
 	}
 }
+
 func (sm *SeedManager) get_random_peer() *Peer {
 	if len(sm.peer_pool) > 0 {
 		return sm.peer_pool[rand.Intn(len(sm.peer_pool))]
@@ -46,7 +49,7 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 		return
 	}
 	///////////////
-	rmsg, err := NewPeerConn(nil, nil, nil).SetConn(&conn).Run().SendMsg(METHOD_PEERLIST, nil)
+	rmsg, err := NewPeerConn(sm.byte_rpc_conf, nil, nil).SetConn(&conn).Run().SendMsg(METHOD_PEERLIST, nil)
 	if err != nil {
 		return
 	}
