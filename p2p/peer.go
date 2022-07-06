@@ -21,33 +21,33 @@ type PeerConn struct {
 	conn           *net.Conn
 	rpc_client     *byte_rpc.Client
 	close_callback func(*PeerConn, error)
+	handlers       map[string]func([]byte) []byte //registered handlers
 }
 
-func NewPeerConn(byte_rpc_conf *byte_rpc.Config, peer *Peer, close_callback func(*PeerConn, error)) *PeerConn {
+func new_peer_conn(byte_rpc_conf *byte_rpc.Config, peer *Peer, close_callback func(*PeerConn, error)) *PeerConn {
 	return &PeerConn{
 		byte_rpc_conf:  byte_rpc_conf,
 		peer:           peer,
 		close_callback: close_callback,
+		handlers:       make(map[string]func([]byte) []byte),
 	}
 }
 
-func (peerConn *PeerConn) SetConn(conn *net.Conn) *PeerConn {
+func (peerConn *PeerConn) set_conn(conn *net.Conn) *PeerConn {
 	peerConn.conn = conn
 	return peerConn
 }
 
-func (peerConn *PeerConn) RegisterRpcHandlers(handlers map[string]func([]byte) []byte) error {
+func (peerConn *PeerConn) register_rpc_handlers(handlers map[string]func([]byte) []byte) error {
 
 	if peerConn.rpc_client == nil {
 		return errors.New("rpc_client nil")
 	}
 
 	for method_str, m_handler := range handlers {
-		err := peerConn.rpc_client.Register(method_str, m_handler)
-		if err != nil {
-			return err
-		}
+		peerConn.handlers[method_str] = m_handler
 	}
+
 	return nil
 }
 
@@ -70,21 +70,7 @@ func (peerConn *PeerConn) DialWithTimeOut(timeout time.Duration) error {
 	return nil
 }
 
-func (peerConn *PeerConn) Run() *PeerConn {
-
-	//fmt.Println(" peerConn.Hub.config.P2p_version", peerConn.hub.config.P2p_version)
-	//fmt.Println(" peerConn.Hub.config.P2p_sub_version", peerConn.hub.config.P2p_sub_version)
-
-	// peerConn.rpc_client = byte_rpc.NewClient(io.ReadWriteCloser(*peerConn.conn), &byte_rpc.Config{
-	// 	Version:             peerConn.hub.config.P2p_version,
-	// 	Sub_version:         peerConn.hub.config.P2p_sub_version,
-	// 	Body_max_bytes:      peerConn.hub.config.P2p_body_max_bytes,
-	// 	Method_max_bytes:    peerConn.hub.config.P2p_method_max_bytes,
-	// 	Live_check_duration: peerConn.hub.config.P2p_live_check_duration,
-	// 	Conn_closed_callback: func(err error) {
-	// 		peerConn.close_callback(peerConn, err)
-	// 	},
-	// })
+func (peerConn *PeerConn) run() *PeerConn {
 
 	peerConn.rpc_client = byte_rpc.NewClient(io.ReadWriteCloser(*peerConn.conn), &byte_rpc.Config{
 		Version:             peerConn.byte_rpc_conf.Version,
@@ -99,17 +85,21 @@ func (peerConn *PeerConn) Run() *PeerConn {
 		},
 	})
 
+	for method_name, method_func := range peerConn.handlers {
+		peerConn.rpc_client.Register(method_name, method_func)
+	}
+
 	peerConn.rpc_client.StartLivenessCheck().Run()
 	return peerConn
 }
 
-func (pc *PeerConn) Close() {
+func (pc *PeerConn) close() {
 	if pc.close_callback != nil {
 		pc.close_callback(pc, nil)
 	}
 }
 
-func (pc *PeerConn) SendMsg(method string, msg []byte) ([]byte, error) {
+func (pc *PeerConn) send_msg(method string, msg []byte) ([]byte, error) {
 	result, err_code := pc.rpc_client.Call(method, msg)
 	if err_code != 0 {
 		return nil, errors.New(byte_rpc.GetErrMsgStr(uint(err_code)))
@@ -168,7 +158,7 @@ func (pc *PeerConn) reg_ping(hub *Hub) *PeerConn {
 
 func (pc *PeerConn) reg_close() *PeerConn {
 	pc.rpc_client.Register(METHOD_CLOSE, func(input []byte) []byte {
-		defer pc.Close()
+		defer pc.close()
 		return []byte(METHOD_CLOSE)
 	})
 	return pc
@@ -178,20 +168,20 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 	pc.rpc_client.Register(METHOD_BUILD_INBOUND, func(input []byte) []byte {
 		if !hub.is_outbound_target(pc.peer.Ip) {
-			time.AfterFunc(time.Second*1, func() { pc.Close() })
+			time.AfterFunc(time.Second*1, func() { pc.close() })
 			return []byte(MSG_REJECTED)
 		}
 
 		//register all the handlers
-		err := pc.RegisterRpcHandlers(hub.hanlder)
+		err := pc.register_rpc_handlers(hub.hanlder)
 		if err != nil {
-			time.AfterFunc(time.Second*1, func() { pc.Close() })
+			time.AfterFunc(time.Second*1, func() { pc.close() })
 			hub.logger.Errorln("METHOD_BUILD_INBOUND RegisterRpcHandlers error", err)
 			return []byte(MSG_REJECTED)
 		}
 
 		if len(hub.out_bound_peer_conns) > int(hub.config.P2p_outbound_limit) {
-			time.AfterFunc(time.Second*1, func() { pc.Close() })
+			time.AfterFunc(time.Second*1, func() { pc.close() })
 			hub.logger.Errorln("METHOD_BUILD_INBOUND overlimit")
 			return []byte(MSG_REJECTED)
 		}
@@ -206,13 +196,13 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 		//kick out the old stable conn
 		if old_ob_p != nil {
 			hub.logger.Debugln("METHOD_BUILD_INBOUND kick out old out_bound_conn")
-			old_ob_p.Close()
+			old_ob_p.close()
 		}
 
 		old_ib_p := hub.in_bound_peer_conns[pc.peer.Ip]
 		if old_ib_p != nil {
 			hub.logger.Debugln("METHOD_BUILD_OUTBOUND kick out old in_bound_conn")
-			old_ib_p.Close()
+			old_ib_p.close()
 		}
 
 		return []byte(MSG_APPROVED)
@@ -230,7 +220,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		}
 
 		pc.peer.Port = port
-		inbound_peer := NewPeerConn(pc.byte_rpc_conf, &Peer{
+		inbound_peer := new_peer_conn(pc.byte_rpc_conf, &Peer{
 			Ip:   pc.peer.Ip,
 			Port: pc.peer.Port,
 		}, func(pc *PeerConn, err error) {
@@ -248,15 +238,15 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		})
 
 		//register all the handlers
-		err = inbound_peer.RegisterRpcHandlers(hub.hanlder)
+		err = inbound_peer.register_rpc_handlers(hub.hanlder)
 		if err != nil {
-			time.AfterFunc(time.Second*1, func() { inbound_peer.Close() })
+			time.AfterFunc(time.Second*1, func() { inbound_peer.close() })
 			hub.logger.Errorln("METHOD_BUILD_OUTBOUND RegRpcHandlers error", err)
 			return []byte(MSG_REJECTED)
 		}
 
 		if len(hub.in_bound_peer_conns) > int(hub.config.P2p_inbound_limit) {
-			time.AfterFunc(time.Second*1, func() { inbound_peer.Close() })
+			time.AfterFunc(time.Second*1, func() { inbound_peer.close() })
 			hub.logger.Errorln("METHOD_BUILD_OUTBOUND overlimit")
 			return []byte(MSG_REJECTED)
 		}
@@ -271,24 +261,24 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		//kick out the old stable conn
 		if old_ib_p != nil {
 			hub.logger.Debugln("METHOD_BUILD_OUTBOUND kick out old in_bound_conn")
-			old_ib_p.Close()
+			old_ib_p.close()
 		}
 
 		old_ob_p := hub.out_bound_peer_conns[pc.peer.Ip]
 		if old_ob_p != nil {
 			hub.logger.Debugln("METHOD_BUILD_OUTBOUND kick out old out_bound_conn")
-			old_ob_p.Close()
+			old_ob_p.close()
 		}
 
 		go func() {
 			/////////dail remote tcp////////
 			dial_err := inbound_peer.Dial()
 			if dial_err != nil {
-				inbound_peer.Close()
+				inbound_peer.close()
 			}
 			////////////////////////////////
-			inbound_peer.Run()
-			inbound_peer.SendMsg(METHOD_BUILD_INBOUND, nil)
+			inbound_peer.run()
+			inbound_peer.send_msg(METHOD_BUILD_INBOUND, nil)
 		}()
 
 		return []byte(MSG_APPROVED)

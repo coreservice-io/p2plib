@@ -186,7 +186,7 @@ func (hub *Hub) start_server() error {
 			}
 
 			////////////////////////////////////////////////
-			pc := NewPeerConn(&byte_rpc.Config{
+			pc := new_peer_conn(&byte_rpc.Config{
 				Version:              hub.config.P2p_version,
 				Sub_version:          hub.config.P2p_sub_version,
 				Body_max_bytes:       hub.config.P2p_body_max_bytes,
@@ -209,7 +209,7 @@ func (hub *Hub) start_server() error {
 
 			})
 
-			pc.SetConn(&conn).reg_close().reg_ping(hub).reg_peerlist(hub).reg_build_inbound(hub).reg_build_outbound(hub).Run()
+			pc.set_conn(&conn).reg_close().reg_ping(hub).reg_peerlist(hub).reg_build_inbound(hub).reg_build_outbound(hub).run()
 
 			//close the conn which is used for build_conn callback
 			time.AfterFunc(hub.config.P2p_live_check_duration, func() {
@@ -218,7 +218,7 @@ func (hub *Hub) start_server() error {
 					//conn became outbound conn
 					hub.logger.Debugln("conn became outbound conn ,won't close it")
 				} else {
-					pc.Close()
+					pc.close()
 				}
 			})
 

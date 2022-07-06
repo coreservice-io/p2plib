@@ -7,7 +7,7 @@ import (
 
 func ping_peer(p *Peer, cb func(error)) {
 
-	pc := NewPeerConn(nil, &Peer{
+	pc := new_peer_conn(nil, &Peer{
 		Ip:   p.Ip,
 		Port: p.Port,
 	}, nil)
@@ -17,9 +17,9 @@ func ping_peer(p *Peer, cb func(error)) {
 		cb(err)
 		return
 	}
-	pc.Run()
+	pc.run()
 
-	pr, perr := pc.SendMsg(METHOD_PING, nil)
+	pr, perr := pc.send_msg(METHOD_PING, nil)
 	if perr != nil {
 		cb(perr)
 		return
@@ -30,7 +30,7 @@ func ping_peer(p *Peer, cb func(error)) {
 		return
 	}
 
-	pc.SendMsg(METHOD_CLOSE, nil)
+	pc.send_msg(METHOD_CLOSE, nil)
 	cb(nil)
 }
 
@@ -48,7 +48,7 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 
 	port_bytes := encode_build_conn(peer.Port)
 
-	outbound_peer := NewPeerConn(nil, &Peer{
+	outbound_peer := new_peer_conn(nil, &Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
 	}, nil)
@@ -58,9 +58,9 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 		return err
 	}
 
-	outbound_peer.Run()
+	outbound_peer.run()
 
-	pr, perr := outbound_peer.SendMsg(METHOD_PING, nil)
+	pr, perr := outbound_peer.send_msg(METHOD_PING, nil)
 	if perr != nil {
 		return perr
 	}
@@ -71,14 +71,14 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 	}
 
 	if peer_hub_id != hub.id {
-		_, err = outbound_peer.SendMsg(METHOD_BUILD_OUTBOUND, port_bytes)
+		_, err = outbound_peer.send_msg(METHOD_BUILD_OUTBOUND, port_bytes)
 		if err != nil {
 			return err
 		}
 	}
 
-	outbound_peer.SendMsg(METHOD_CLOSE, nil)
-	outbound_peer.Close()
+	outbound_peer.send_msg(METHOD_CLOSE, nil)
+	outbound_peer.close()
 	return nil
 }
 
@@ -120,7 +120,7 @@ func deamon_refresh_peerlist(hub *Hub) {
 
 		for _, pc := range all_pcs {
 
-			pl, pl_err := pc.SendMsg(METHOD_PEERLIST, nil)
+			pl, pl_err := pc.send_msg(METHOD_PEERLIST, nil)
 			if pl_err != nil {
 				hub.logger.Debugln("METHOD_PEERLIST err", pl_err)
 				continue
