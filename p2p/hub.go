@@ -68,7 +68,9 @@ func (hub *Hub) increase_conn_counter(ip string) bool {
 		return false
 	}
 
+	hub.logger.Infoln("increase_conn_counter add before", ip, hub.conn_counter[ip])
 	hub.conn_counter[ip] = hub.conn_counter[ip] + 1
+	hub.logger.Infoln("increase_conn_counter add after", ip, hub.conn_counter[ip])
 	return true
 }
 
@@ -202,8 +204,10 @@ func (hub *Hub) start_server() error {
 				if hub.out_bound_peer_conns[ip] == pc {
 					delete(hub.out_bound_peer_conns, ip)
 				}
-				hub.conn_counter[ip] = hub.conn_counter[ip] - 1
+
 				hub.logger.Infoln("peerconn close callback ", ip, hub.conn_counter[ip])
+				hub.conn_counter[ip] = hub.conn_counter[ip] - 1
+
 				hub.conn_lock.Unlock()
 				hub.out_bound_peer_lock.Unlock()
 			})
