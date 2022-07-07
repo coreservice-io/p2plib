@@ -2,13 +2,13 @@ package p2p
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/coreservice-io/byte_rpc"
 )
 
-func ping_peer(p *Peer, cb func(error)) {
+//return the hub_id,error of the other end
+func ping_peer(p *Peer) (uint64, error) {
 
 	pc := new_peer_conn(nil, &Peer{
 		Ip:   p.Ip,
@@ -17,24 +17,23 @@ func ping_peer(p *Peer, cb func(error)) {
 
 	err := pc.dail_with_timeout(5 * time.Second)
 	if err != nil {
-		cb(err)
-		return
+		pc.close()
+		return 0, err
 	}
+
+	defer func() {
+		pc.send_msg(METHOD_CLOSE, nil)
+		pc.close()
+	}()
+
 	pc.run()
 
 	pr, perr := pc.send_msg(METHOD_PING, nil)
 	if perr != nil {
-		cb(perr)
-		return
+		return 0, perr
 	}
 
-	if len(pr) != 8 {
-		cb(errors.New("ping result error"))
-		return
-	}
-
-	pc.send_msg(METHOD_CLOSE, nil)
-	cb(nil)
+	return decode_ping(pr)
 }
 
 func request_build_outbound_conn(hub *Hub, peer *Peer) error {
@@ -43,9 +42,6 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 		hub.logger.Debugln("request_build_outbound_conn with ip exist in conns already,ip", peer.Ip)
 		return nil
 	}
-
-	hub.out_bound_peer_lock.Lock()
-	defer hub.out_bound_peer_lock.Unlock()
 
 	hub.set_outbound_target(peer.Ip)
 
@@ -64,11 +60,16 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 
 	err := outbound_peer.dial()
 	if err != nil {
-		fmt.Println(err)
+		hub.logger.Errorln(err)
+		outbound_peer.close()
 		return err
 	}
-
 	outbound_peer.run()
+
+	defer func() {
+		outbound_peer.send_msg(METHOD_CLOSE, nil)
+		outbound_peer.close()
+	}()
 
 	pr, perr := outbound_peer.send_msg(METHOD_PING, nil)
 	if perr != nil {
@@ -87,8 +88,6 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 		}
 	}
 
-	outbound_peer.send_msg(METHOD_CLOSE, nil)
-	outbound_peer.close()
 	return nil
 }
 
@@ -113,7 +112,7 @@ func deamon_refresh_peerlist(hub *Hub) {
 	for {
 
 		all_pcs := []*PeerConn{}
-
+		/////////////////////////////
 		hub.in_bound_peer_lock.Lock()
 		hub.out_bound_peer_lock.Lock()
 
@@ -127,6 +126,7 @@ func deamon_refresh_peerlist(hub *Hub) {
 
 		hub.in_bound_peer_lock.Unlock()
 		hub.out_bound_peer_lock.Unlock()
+		/////////////////////////////
 
 		for _, pc := range all_pcs {
 
@@ -160,46 +160,46 @@ func deamon_keep_outbounds(hub *Hub) {
 
 	for {
 
-		// if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
-		// 	hub.logger.Infoln("outbound reach limit")
-		// 	time.Sleep(30 * time.Second)
-		// 	continue
-		// }
+		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
+			hub.logger.Infoln("outbound reach limit")
+			time.Sleep(30 * time.Second)
+			continue
+		}
 
-		// //if some connection break (maybe caused by feeler connection )
-		// //try to reconnect the old connection
-		// if len(hub.out_bound_peer_conns) == 0 {
-		// 	hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
+		//if some connection break (maybe caused by feeler connection )
+		//try to reconnect the old connection
+		if len(hub.out_bound_peer_conns) == 0 {
+			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
 
-		// 	plist, err := kvdb_get_outbounds(hub.kvdb)
-		// 	if err != nil {
-		// 		hub.logger.Warnln("kvdb_get_outbounds warning:", err)
-		// 	} else {
-		// 		if len(plist) > 0 {
-		// 			for _, peer := range plist {
-		// 				request_build_outbound_conn(hub, peer)
-		// 			}
-		// 			kvdb_set_outbounds(hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
-		// 			time.Sleep(30 * time.Second)
-		// 		}
-		// 	}
-		// }
+			plist, err := kvdb_get_outbounds(hub.kvdb)
+			if err != nil {
+				hub.logger.Warnln("kvdb_get_outbounds warning:", err)
+			} else {
+				if len(plist) > 0 {
+					for _, peer := range plist {
+						request_build_outbound_conn(hub, peer)
+					}
+					kvdb_set_outbounds(hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
+					time.Sleep(30 * time.Second)
+				}
+			}
+		}
 
-		// //try connect to peers with the help of seed
-		// if len(hub.out_bound_peer_conns) == 0 {
-		// 	hub.seed_manager.sampling_peers_from_seed()
-		// 	for t := 0; t < 3; t++ {
-		// 		hub.seed_manager.sampling_peers_from_peer()
-		// 	}
+		//try connect to peers with the help of seed
+		if len(hub.out_bound_peer_conns) == 0 {
+			hub.seed_manager.sampling_peers_from_seed()
+			for t := 0; t < 3; t++ {
+				hub.seed_manager.sampling_peers_from_peer()
+			}
 
-		// 	for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
-		// 		s_p := hub.seed_manager.get_random_peer()
-		// 		if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil && hub.in_bound_peer_conns[s_p.Ip] == nil {
-		// 			request_build_outbound_conn(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
-		// 		}
-		// 	}
-		// 	time.Sleep(60 * time.Second)
-		// }
+			for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
+				s_p := hub.seed_manager.get_random_peer()
+				if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil && hub.in_bound_peer_conns[s_p.Ip] == nil {
+					request_build_outbound_conn(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
+				}
+			}
+			time.Sleep(60 * time.Second)
+		}
 
 		//try directly connect to seed
 		if len(hub.out_bound_peer_conns) == 0 {

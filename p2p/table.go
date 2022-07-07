@@ -178,16 +178,18 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 
 }
 
-func (tm *TableManager) feel_new_table() {
+func (tm *TableManager) feel_new_table_rand_target() *feeler_peer {
+
 	tm.new_table_lock.Lock()
 	tm.tried_table_lock.Lock()
+
 	defer tm.tried_table_lock.Unlock()
 	defer tm.new_table_lock.Unlock()
 
 	nt_bucket_keys := reflect.ValueOf(tm.new_table.Bucket).MapKeys()
 	nt_bucket_count := len(nt_bucket_keys)
 	if nt_bucket_count == 0 {
-		return
+		return nil
 	}
 
 	nt_bucket_target_pos := nt_bucket_keys[rand.Intn(nt_bucket_count)].Interface().(uint32)
@@ -195,31 +197,13 @@ func (tm *TableManager) feel_new_table() {
 	nt_target_peer_keys := reflect.ValueOf(nt_bucket_target).MapKeys()
 	nt_peer_count := len(nt_target_peer_keys)
 	if nt_peer_count == 0 {
-		return
+		delete(tm.new_table.Bucket, nt_bucket_target_pos)
+		return nil
 	}
 
 	nt_target_peer := nt_bucket_target[nt_target_peer_keys[rand.Intn(nt_peer_count)].Interface().(uint16)]
-
 	tt_bucket_pos := tm.get_tried_bucket_position(nt_target_peer.Ip_split)
 	bucket_offset := tm.get_bucket_offset(nt_target_peer.Ip_split)
-
-	//insert when no one on this slot
-	if tm.tried_table.Bucket[tt_bucket_pos] == nil || tm.tried_table.Bucket[tt_bucket_pos][bucket_offset] == nil {
-		ping_peer(&Peer{Ip: strings.Join(nt_target_peer.Ip_split[:], "."), Port: nt_target_peer.Port}, func(err error) {
-			if err != nil {
-				tm.logger.Debugln("ping peer error:", err)
-			} else {
-				f_p := &feeler_peer{
-					Ip_split:    nt_target_peer.Ip_split,
-					Port:        nt_target_peer.Port,
-					Feeler_time: time.Now().Unix(),
-				}
-
-				tm.tried_table.Bucket[tt_bucket_pos][bucket_offset] = f_p
-				tm.tried_table_task = append(tm.tried_table_task, f_p)
-			}
-		})
-	}
 
 	//delete related slots from new table
 	delete(tm.new_table.Bucket[nt_bucket_target_pos], bucket_offset)
@@ -227,6 +211,47 @@ func (tm *TableManager) feel_new_table() {
 		delete(tm.new_table.Bucket, nt_bucket_target_pos)
 	}
 
+	if tm.tried_table.Bucket[tt_bucket_pos] != nil && tm.tried_table.Bucket[tt_bucket_pos][bucket_offset] != nil {
+		//already exist then just pass
+		return nil
+	}
+
+	return nt_target_peer
+}
+
+func (tm *TableManager) feel_new_table() {
+
+	///////////////////////////
+	var feeler_target *feeler_peer
+	for i := 0; i < 10; i++ {
+		feeler_target = tm.feel_new_table_rand_target()
+		if feeler_target != nil {
+			break
+		}
+	}
+	if feeler_target == nil {
+		return
+	}
+	///////////////////////////
+	_, p_err := ping_peer(&Peer{Ip: strings.Join(feeler_target.Ip_split[:], "."), Port: feeler_target.Port})
+	if p_err != nil {
+		tm.logger.Debugln("ping peer error:", p_err)
+		return
+	}
+	/////////////////////////////
+	tm.tried_table_lock.Lock()
+	f_p := &feeler_peer{
+		Ip_split:    feeler_target.Ip_split,
+		Port:        feeler_target.Port,
+		Feeler_time: time.Now().Unix(),
+	}
+
+	tt_bucket_pos := tm.get_tried_bucket_position(f_p.Ip_split)
+	bucket_offset := tm.get_bucket_offset(f_p.Ip_split)
+	tm.tried_table.Bucket[tt_bucket_pos][bucket_offset] = f_p
+	tm.tried_table_task = append(tm.tried_table_task, f_p)
+	tm.tried_table_lock.Unlock()
+	/////////////////////////////
 }
 
 func (tm *TableManager) feel_tried_table() {
@@ -249,27 +274,28 @@ func (tm *TableManager) feel_tried_table() {
 		tm.tried_table_lock.Lock()
 		tm.tried_table_task = append(tm.tried_table_task, task)
 		tm.tried_table_lock.Unlock()
-	} else {
-		ping_peer(&Peer{Ip: strings.Join(task.Ip_split[:], "."), Port: task.Port}, func(err error) {
-			tm.tried_table_lock.Lock()
-			if err != nil {
-				//delete related slots from tried table
-				tt_bucket_pos := tm.get_tried_bucket_position(task.Ip_split)
-				bucket_offset := tm.get_bucket_offset(task.Ip_split)
-
-				delete(tm.tried_table.Bucket[tt_bucket_pos], bucket_offset)
-				if len(tm.tried_table.Bucket[tt_bucket_pos]) == 0 {
-					delete(tm.tried_table.Bucket, tt_bucket_pos)
-				}
-
-				tm.logger.Debugln("ping peer error:", err)
-			} else {
-				task.Feeler_time = time.Now().Unix()
-				tm.tried_table_task = append(tm.tried_table_task, task)
-			}
-			tm.tried_table_lock.Unlock()
-		})
+		return
 	}
+
+	_, ping_err := ping_peer(&Peer{Ip: strings.Join(task.Ip_split[:], "."), Port: task.Port})
+	///////////////////////////
+	tm.tried_table_lock.Lock()
+	if ping_err != nil {
+		//delete related slots from tried table
+		tt_bucket_pos := tm.get_tried_bucket_position(task.Ip_split)
+		bucket_offset := tm.get_bucket_offset(task.Ip_split)
+
+		delete(tm.tried_table.Bucket[tt_bucket_pos], bucket_offset)
+		if len(tm.tried_table.Bucket[tt_bucket_pos]) == 0 {
+			delete(tm.tried_table.Bucket, tt_bucket_pos)
+		}
+		tm.logger.Debugln("ping peer error:", ping_err)
+	} else {
+		task.Feeler_time = time.Now().Unix()
+		tm.tried_table_task = append(tm.tried_table_task, task)
+	}
+	tm.tried_table_lock.Unlock()
+	//////////////////////////////
 }
 
 func deamon_save_kvdb_tried_table(tm *TableManager) {
