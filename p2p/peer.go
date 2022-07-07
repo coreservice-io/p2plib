@@ -274,6 +274,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		//register all the handlers
 		inbound_peer.reg_close().reg_ping(hub).reg_peerlist(hub)
 		inbound_peer.register_handlers(hub.handlers)
+		inbound_peer.run()
 
 		//////clear the old conn /////////////////////
 		hub.in_bound_peer_lock.Lock()
@@ -303,20 +304,18 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			////////////////////////////////
 			bi_r, bi_err := inbound_peer.send_msg(METHOD_BUILD_INBOUND, nil)
 			if bi_err == nil && string(bi_r) == MSG_APPROVED {
-				inbound_peer.run().start_heart_beat(inbound_peer.heart_beat_duratioin, func(err error) {
+				inbound_peer.start_heart_beat(inbound_peer.heart_beat_duratioin, func(err error) {
 					if err != nil {
 						hub.logger.Errorln("heart_beat error inside METHOD_BUILD_OUTBOUND", err)
 					}
 					hub.logger.Debugln("heart_beat  inside METHOD_BUILD_OUTBOUND closed")
 				})
-
 			} else {
 				hub.logger.Errorln("METHOD_BUILD_INBOUND error:", bi_err, "result:", bi_r)
+				inbound_peer.send_msg(METHOD_CLOSE, nil)
 				inbound_peer.close()
 			}
-
 		}()
-
 		return []byte(MSG_APPROVED)
 	})
 	return pc
