@@ -175,6 +175,7 @@ func deamon_keep_outbounds(hub *Hub) {
 			}
 		}
 
+		//try connect to peers with the help of seed
 		if len(hub.out_bound_peer_conns) == 0 {
 			hub.seed_manager.sampling_peers_from_seed()
 			for t := 0; t < 3; t++ {
@@ -188,6 +189,15 @@ func deamon_keep_outbounds(hub *Hub) {
 				}
 			}
 			time.Sleep(60 * time.Second)
+		}
+
+		//try directly connect to seed
+		if len(hub.out_bound_peer_conns) == 0 {
+			sp := hub.seed_manager.pick_random_seed_peer()
+			if sp != nil {
+				request_build_outbound_conn(hub, sp)
+			}
+			time.Sleep(30 * time.Second)
 		}
 
 		//[eclipse attack] never pick from tried table when no outbound connection established yet
