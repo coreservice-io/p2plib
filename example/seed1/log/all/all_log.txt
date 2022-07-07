@@ -1,0 +1,6 @@
+2022-07-07 10:02:42 [INFO] try rebuild last outbound connections from dbkv 
+2022-07-07 10:02:43 [WARN] kvdb_get_outbounds warning: leveldb: not found
+2022-07-07 10:04:03 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-07 10:04:05 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-07 10:04:05 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-07 10:04:05 [INFO] peerconn close callback  10.211.55.2 0

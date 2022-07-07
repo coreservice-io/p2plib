@@ -309,6 +309,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 					}
 					hub.logger.Debugln("heart_beat  inside METHOD_BUILD_OUTBOUND closed")
 				})
+
 			} else {
 				hub.logger.Errorln("METHOD_BUILD_INBOUND error:", bi_err, "result:", bi_r)
 				inbound_peer.close()
