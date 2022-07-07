@@ -115,8 +115,8 @@ func (peerConn *PeerConn) run() *PeerConn {
 }
 
 func (pc *PeerConn) close() {
-	if pc.close_callback != nil {
-		pc.close_callback(pc)
+	if pc.rpc_client != nil {
+		pc.rpc_client.Close()
 	}
 }
 
