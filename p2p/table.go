@@ -233,7 +233,7 @@ func (tm *TableManager) feel_new_table() {
 		return
 	}
 	///////////////////////////
-	_, p_err := ping_peer(&Peer{Ip: strings.Join(feeler_target.Ip_split[:], "."), Port: feeler_target.Port})
+	_, p_err := dail_ping_peer(&Peer{Ip: strings.Join(feeler_target.Ip_split[:], "."), Port: feeler_target.Port})
 	if p_err != nil {
 		tm.logger.Debugln("ping peer error:", p_err)
 		return
@@ -277,7 +277,7 @@ func (tm *TableManager) feel_tried_table() {
 		return
 	}
 
-	_, ping_err := ping_peer(&Peer{Ip: strings.Join(task.Ip_split[:], "."), Port: task.Port})
+	_, ping_err := dail_ping_peer(&Peer{Ip: strings.Join(task.Ip_split[:], "."), Port: task.Port})
 	///////////////////////////
 	tm.tried_table_lock.Lock()
 	if ping_err != nil {

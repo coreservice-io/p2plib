@@ -11,3 +11,16 @@ const BUCKET_SIZE = 64
 const NEW_TABLE_BUCKET_NUM = 2048
 const TRIED_TABLE_BUCKET_NUM = 64
 const FEELER_INTERVAL = 1 //feel some peer in new/tried table every {FEELER_INTERVAL} second
+
+type P2pConfig struct {
+	P2p_version          uint16
+	P2p_sub_version      uint16
+	P2p_body_max_bytes   uint32
+	P2p_method_max_bytes uint8
+}
+
+var p2p_config *P2pConfig
+
+func Initialize(p2p_conf *P2pConfig) {
+	p2p_config = p2p_conf
+}

@@ -14,18 +14,23 @@ import (
 
 func main() {
 
+	///////////////////////////////////////////////
+	p2p.Initialize(&p2p.P2pConfig{
+		P2p_version:          1,
+		P2p_sub_version:      1,
+		P2p_body_max_bytes:   1024 * 1024,
+		P2p_method_max_bytes: 32,
+	})
+
 	p2p_hub_conf := p2p.HubConfig{
-		Hub_port:                8081,
-		P2p_version:             1,
-		P2p_sub_version:         1,
-		P2p_body_max_bytes:      1024 * 1024,
-		P2p_method_max_bytes:    32,
-		P2p_live_check_duration: 60 * time.Second,
-		P2p_inbound_limit:       128,
-		P2p_outbound_limit:      8,
-		Conn_pool_limit:         256,
+		Port:                8081,
+		Heart_beat_duration: 60 * time.Second,
+		Inbound_limit:       128,
+		Outbound_limit:      8,
+		Conns_limit:         256,
 	}
 
+	///////////////////////////////////////////////
 	levdb, err := leveldb.OpenFile("./leveldb", nil)
 	if err != nil {
 		fmt.Println("leveldb err", err)
@@ -39,10 +44,13 @@ func main() {
 	}
 
 	logger.SetLevel(log.DebugLevel)
+	///////////////////////////////////////////////
 
 	kvdb := example.NewP2pKVDB(levdb)
 	ref := reference.New()
 	ip_black_list := make(map[string]bool)
+
+	///////////////////////////////////////////////
 
 	hub, hub_err := p2p.NewHub(kvdb, ref, ip_black_list, p2p.NewSeedManager([]*p2p.Seed{
 		//{Host: "10.211.55.2", Port: 8081},

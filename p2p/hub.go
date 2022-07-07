@@ -8,21 +8,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coreservice-io/byte_rpc"
 	"github.com/coreservice-io/log"
 	"github.com/coreservice-io/reference"
 )
 
 type HubConfig struct {
-	Hub_port                uint16
-	P2p_version             uint16
-	P2p_sub_version         uint16
-	P2p_body_max_bytes      uint32
-	P2p_method_max_bytes    uint8
-	P2p_live_check_duration time.Duration
-	P2p_inbound_limit       uint // set this to be big for seed nodes
-	P2p_outbound_limit      uint // ==0 for seed nodes
-	Conn_pool_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
+	Port                uint16
+	Heart_beat_duration time.Duration
+	Inbound_limit       uint // set this to be big for seed nodes
+	Outbound_limit      uint // ==0 for seed nodes
+	Conns_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
 }
 
 func init() {
@@ -46,10 +41,7 @@ type Hub struct {
 	out_bound_peer_conns map[string]*PeerConn //ip =>conn
 	out_bound_peer_lock  sync.Mutex
 
-	// conn_credit      map[string]int16 // 0-100,initialized with
-	// conn_credit_lock sync.Mutex
-
-	hanlder map[string]func([]byte) []byte
+	handlers map[string]func([]byte) []byte
 
 	seed_manager *SeedManager
 
@@ -86,20 +78,16 @@ func (hub *Hub) RemoveIpBlackList(ip string) {
 
 func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, sm *SeedManager, config *HubConfig, logger log.Logger) (*Hub, error) {
 
+	if p2p_config == nil {
+		return nil, errors.New("p2p has to be initialized")
+	}
+
 	if config == nil {
 		return nil, errors.New("config empty error")
 	}
 
 	if sm == nil || sm.seeds == nil || sm.peer_pool == nil || sm.ref == nil {
 		return nil, errors.New("seed manager empty error, check |sm.Seeds|sm.PeerPool|sm.ref|")
-	}
-
-	sm.byte_rpc_conf = &byte_rpc.Config{
-		Version:              config.P2p_version,
-		Sub_version:          config.P2p_sub_version,
-		Body_max_bytes:       config.P2p_body_max_bytes,
-		Method_max_bytes:     config.P2p_method_max_bytes,
-		Conn_closed_callback: nil,
 	}
 
 	tm, tm_err := new_table_manager(kvdb, logger)
@@ -117,7 +105,7 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 		conn_counter:         make(map[string]uint8),
 		in_bound_peer_conns:  make(map[string]*PeerConn),
 		out_bound_peer_conns: map[string]*PeerConn{},
-		hanlder:              map[string]func([]byte) []byte{},
+		handlers:             map[string]func([]byte) []byte{},
 		seed_manager:         sm,
 		ip_black_list:        ip_black_list,
 		table_manager:        tm,
@@ -126,10 +114,10 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 }
 
 func (hub *Hub) RegisterHandlers(method string, handler func([]byte) []byte) error {
-	if _, ok := hub.hanlder[method]; ok {
+	if _, ok := hub.handlers[method]; ok {
 		return errors.New("method already exist")
 	}
-	hub.hanlder[method] = handler
+	hub.handlers[method] = handler
 	return nil
 }
 
@@ -151,7 +139,7 @@ func (hub *Hub) set_outbound_target(ip string) {
 
 func (hub *Hub) start_server() error {
 
-	listener, err := net.Listen("tcp", ":"+strconv.Itoa(int(hub.config.Hub_port)))
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(int(hub.config.Port)))
 	if err != nil {
 		return err
 	}
@@ -161,7 +149,7 @@ func (hub *Hub) start_server() error {
 
 			/////conn incoming ///////
 			hub.conn_lock.Lock()
-			if len(hub.conn_counter) > int(hub.config.Conn_pool_limit) {
+			if len(hub.conn_counter) > int(hub.config.Conns_limit) {
 				hub.conn_lock.Unlock()
 				time.Sleep(5 * time.Second)
 				continue
@@ -188,13 +176,7 @@ func (hub *Hub) start_server() error {
 			}
 
 			////////////////////////////////////////////////
-			pc := new_peer_conn(&byte_rpc.Config{
-				Version:              hub.config.P2p_version,
-				Sub_version:          hub.config.P2p_sub_version,
-				Body_max_bytes:       hub.config.P2p_body_max_bytes,
-				Method_max_bytes:     hub.config.P2p_method_max_bytes,
-				Conn_closed_callback: nil,
-			}, &Peer{Ip: ip}, hub.config.P2p_live_check_duration, func(pc *PeerConn) {
+			pc := new_peer_conn(&Peer{Ip: ip}, hub.config.Heart_beat_duration, func(pc *PeerConn) {
 				if err != nil {
 					hub.logger.Errorln("connection close with error:", err)
 				}
@@ -216,7 +198,7 @@ func (hub *Hub) start_server() error {
 			pc.set_conn(&conn).reg_close().reg_ping(hub).reg_peerlist(hub).reg_build_inbound(hub).reg_build_outbound(hub).run()
 
 			//close the conn which is used for build_conn callback
-			time.AfterFunc(hub.config.P2p_live_check_duration, func() {
+			time.AfterFunc(hub.config.Heart_beat_duration, func() {
 				outb_pc := hub.out_bound_peer_conns[ip]
 				if outb_pc != nil && outb_pc.conn == &conn {
 					//conn became outbound conn

@@ -3,14 +3,12 @@ package p2p
 import (
 	"errors"
 	"time"
-
-	"github.com/coreservice-io/byte_rpc"
 )
 
 //return the hub_id,error of the other end
-func ping_peer(p *Peer) (uint64, error) {
+func dail_ping_peer(p *Peer) (uint64, error) {
 
-	pc := new_peer_conn(nil, &Peer{
+	pc := new_peer_conn(&Peer{
 		Ip:   p.Ip,
 		Port: p.Port,
 	}, 0, nil)
@@ -36,7 +34,7 @@ func ping_peer(p *Peer) (uint64, error) {
 	return decode_ping(pr)
 }
 
-func request_build_outbound_conn(hub *Hub, peer *Peer) error {
+func dial_build_outbound(hub *Hub, peer *Peer) error {
 
 	if hub.out_bound_peer_conns[peer.Ip] != nil || hub.in_bound_peer_conns[peer.Ip] != nil {
 		hub.logger.Debugln("request_build_outbound_conn with ip exist in conns already,ip", peer.Ip)
@@ -47,13 +45,7 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 
 	port_bytes := encode_build_conn(peer.Port)
 
-	outbound_peer := new_peer_conn(&byte_rpc.Config{
-		Version:              hub.config.P2p_version,
-		Sub_version:          hub.config.P2p_sub_version,
-		Body_max_bytes:       hub.config.P2p_body_max_bytes,
-		Method_max_bytes:     hub.config.P2p_method_max_bytes,
-		Conn_closed_callback: nil,
-	}, &Peer{
+	outbound_peer := new_peer_conn(&Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
 	}, 0, nil)
@@ -71,6 +63,7 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 		outbound_peer.close()
 	}()
 
+	/////////check  ping is myself/////////////////////
 	pr, perr := outbound_peer.send_msg(METHOD_PING, nil)
 	if perr != nil {
 		return perr
@@ -81,29 +74,16 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 		return errors.New("ping result error")
 	}
 
-	if peer_hub_id != hub.id {
-		_, err = outbound_peer.send_msg(METHOD_BUILD_OUTBOUND, port_bytes)
-		if err != nil {
-			return err
-		}
+	if peer_hub_id == hub.id {
+		return errors.New("build conn to self")
+	}
+	////////////////////////////////////////////////////
+	_, err = outbound_peer.send_msg(METHOD_BUILD_OUTBOUND, port_bytes)
+	if err != nil {
+		return err
 	}
 
 	return nil
-}
-
-//set the outbound conns to kvdb
-func update_kvdb_outbound_conns(hub *Hub) {
-	hub.out_bound_peer_lock.Lock()
-	defer hub.out_bound_peer_lock.Unlock()
-
-	plist := []*Peer{}
-	for _, out_pc := range hub.out_bound_peer_conns {
-		plist = append(plist, &Peer{
-			Ip:   out_pc.peer.Ip,
-			Port: out_pc.peer.Port,
-		})
-	}
-	kvdb_set_outbounds(hub.kvdb, plist)
 }
 
 //retrieve from remote peers and update local peerlist
@@ -160,7 +140,7 @@ func deamon_keep_outbounds(hub *Hub) {
 
 	for {
 
-		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
+		if len(hub.out_bound_peer_conns) >= int(hub.config.Outbound_limit) {
 			hub.logger.Infoln("outbound reach limit")
 			time.Sleep(30 * time.Second)
 			continue
@@ -177,7 +157,7 @@ func deamon_keep_outbounds(hub *Hub) {
 			} else {
 				if len(plist) > 0 {
 					for _, peer := range plist {
-						request_build_outbound_conn(hub, peer)
+						dial_build_outbound(hub, peer)
 					}
 					kvdb_set_outbounds(hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
 					time.Sleep(30 * time.Second)
@@ -192,10 +172,10 @@ func deamon_keep_outbounds(hub *Hub) {
 				hub.seed_manager.sampling_peers_from_peer()
 			}
 
-			for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
+			for j := 0; j < int(hub.config.Outbound_limit); j++ {
 				s_p := hub.seed_manager.get_random_peer()
 				if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil && hub.in_bound_peer_conns[s_p.Ip] == nil {
-					request_build_outbound_conn(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
+					dial_build_outbound(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
 				}
 			}
 			time.Sleep(60 * time.Second)
@@ -205,7 +185,7 @@ func deamon_keep_outbounds(hub *Hub) {
 		if len(hub.out_bound_peer_conns) == 0 {
 			sp := hub.seed_manager.pick_random_seed_peer()
 			if sp != nil {
-				request_build_outbound_conn(hub, sp)
+				dial_build_outbound(hub, sp)
 			}
 			time.Sleep(60 * time.Second)
 		}
@@ -213,9 +193,9 @@ func deamon_keep_outbounds(hub *Hub) {
 		//[eclipse attack] never pick from tried table when no outbound connection established yet
 		if len(hub.out_bound_peer_conns) != 0 {
 			//pick connection from tried table
-			tt_peers := hub.table_manager.get_peers_from_tried_table(int(hub.config.P2p_outbound_limit))
+			tt_peers := hub.table_manager.get_peers_from_tried_table(int(hub.config.Outbound_limit))
 			for _, t_p := range tt_peers {
-				request_build_outbound_conn(hub, &Peer{Ip: t_p.Ip, Port: t_p.Port})
+				dial_build_outbound(hub, &Peer{Ip: t_p.Ip, Port: t_p.Port})
 			}
 
 			//allergic sleep
@@ -227,7 +207,18 @@ func deamon_keep_outbounds(hub *Hub) {
 			}
 		}
 
-		update_kvdb_outbound_conns(hub)
+		/////////////update kvdb outboud conns////////////
+		hub.out_bound_peer_lock.Lock()
+		plist := []*Peer{}
+		for _, out_pc := range hub.out_bound_peer_conns {
+			plist = append(plist, &Peer{
+				Ip:   out_pc.peer.Ip,
+				Port: out_pc.peer.Port,
+			})
+		}
+		kvdb_set_outbounds(hub.kvdb, plist)
+		defer hub.out_bound_peer_lock.Unlock()
+		/////////////////////////////////////////////////
 
 	}
 }
