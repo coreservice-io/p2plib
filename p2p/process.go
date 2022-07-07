@@ -124,8 +124,8 @@ func deamon_refresh_peerlist(hub *Hub) {
 			all_pcs = append(all_pcs, pc)
 		}
 
-		hub.in_bound_peer_lock.Unlock()
 		hub.out_bound_peer_lock.Unlock()
+		hub.in_bound_peer_lock.Unlock()
 		/////////////////////////////
 
 		for _, pc := range all_pcs {
