@@ -274,7 +274,6 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		//register all the handlers
 		inbound_peer.reg_close().reg_ping(hub).reg_peerlist(hub)
 		inbound_peer.register_handlers(hub.handlers)
-		inbound_peer.run()
 
 		//////clear the old conn /////////////////////
 		hub.in_bound_peer_lock.Lock()
@@ -296,11 +295,12 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		}
 
 		go func() {
-			/////////dail remote tcp////////
+			/////////dail remote tcp and run ////////
 			dial_err := inbound_peer.dial()
 			if dial_err != nil {
 				inbound_peer.close()
 			}
+			inbound_peer.run()
 			////////////////////////////////
 			bi_r, bi_err := inbound_peer.send_msg(METHOD_BUILD_INBOUND, nil)
 			if bi_err == nil && string(bi_r) == MSG_APPROVED {
