@@ -64,6 +64,7 @@ func (hub *Hub) increase_conn_counter(ip string) bool {
 	defer hub.conn_lock.Unlock()
 
 	if hub.conn_counter[ip] >= IP_CONN_LIMIT {
+		hub.logger.Debugln("increase_conn_counter overlimit", hub.conn_counter[ip])
 		return false
 	}
 
@@ -202,9 +203,9 @@ func (hub *Hub) start_server() error {
 					delete(hub.out_bound_peer_conns, ip)
 				}
 				hub.conn_counter[ip] = hub.conn_counter[ip] - 1
+				hub.logger.Infoln("peerconn close callback ", ip, hub.conn_counter[ip])
 				hub.conn_lock.Unlock()
 				hub.out_bound_peer_lock.Unlock()
-
 			})
 
 			pc.set_conn(&conn).reg_close().reg_ping(hub).reg_peerlist(hub).reg_build_inbound(hub).reg_build_outbound(hub).run()
