@@ -2,7 +2,10 @@ package p2p
 
 import (
 	"errors"
+	"fmt"
 	"time"
+
+	"github.com/coreservice-io/byte_rpc"
 )
 
 func ping_peer(p *Peer, cb func(error)) {
@@ -48,13 +51,20 @@ func request_build_outbound_conn(hub *Hub, peer *Peer) error {
 
 	port_bytes := encode_build_conn(peer.Port)
 
-	outbound_peer := new_peer_conn(nil, &Peer{
+	outbound_peer := new_peer_conn(&byte_rpc.Config{
+		Version:              hub.config.P2p_version,
+		Sub_version:          hub.config.P2p_sub_version,
+		Body_max_bytes:       hub.config.P2p_body_max_bytes,
+		Method_max_bytes:     hub.config.P2p_method_max_bytes,
+		Conn_closed_callback: nil,
+	}, &Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
 	}, 0, nil)
 
 	err := outbound_peer.dial()
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -150,46 +160,46 @@ func deamon_keep_outbounds(hub *Hub) {
 
 	for {
 
-		if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
-			hub.logger.Infoln("outbound reach limit")
-			time.Sleep(30 * time.Second)
-			continue
-		}
+		// if len(hub.out_bound_peer_conns) >= int(hub.config.P2p_outbound_limit) {
+		// 	hub.logger.Infoln("outbound reach limit")
+		// 	time.Sleep(30 * time.Second)
+		// 	continue
+		// }
 
-		//if some connection break (maybe caused by feeler connection )
-		//try to reconnect the old connection
-		if len(hub.out_bound_peer_conns) == 0 {
-			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
+		// //if some connection break (maybe caused by feeler connection )
+		// //try to reconnect the old connection
+		// if len(hub.out_bound_peer_conns) == 0 {
+		// 	hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
 
-			plist, err := kvdb_get_outbounds(hub.kvdb)
-			if err != nil {
-				hub.logger.Warnln("kvdb_get_outbounds warning:", err)
-			} else {
-				if len(plist) > 0 {
-					for _, peer := range plist {
-						request_build_outbound_conn(hub, peer)
-					}
-					kvdb_set_outbounds(hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
-					time.Sleep(30 * time.Second)
-				}
-			}
-		}
+		// 	plist, err := kvdb_get_outbounds(hub.kvdb)
+		// 	if err != nil {
+		// 		hub.logger.Warnln("kvdb_get_outbounds warning:", err)
+		// 	} else {
+		// 		if len(plist) > 0 {
+		// 			for _, peer := range plist {
+		// 				request_build_outbound_conn(hub, peer)
+		// 			}
+		// 			kvdb_set_outbounds(hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
+		// 			time.Sleep(30 * time.Second)
+		// 		}
+		// 	}
+		// }
 
-		//try connect to peers with the help of seed
-		if len(hub.out_bound_peer_conns) == 0 {
-			hub.seed_manager.sampling_peers_from_seed()
-			for t := 0; t < 3; t++ {
-				hub.seed_manager.sampling_peers_from_peer()
-			}
+		// //try connect to peers with the help of seed
+		// if len(hub.out_bound_peer_conns) == 0 {
+		// 	hub.seed_manager.sampling_peers_from_seed()
+		// 	for t := 0; t < 3; t++ {
+		// 		hub.seed_manager.sampling_peers_from_peer()
+		// 	}
 
-			for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
-				s_p := hub.seed_manager.get_random_peer()
-				if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil && hub.in_bound_peer_conns[s_p.Ip] == nil {
-					request_build_outbound_conn(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
-				}
-			}
-			time.Sleep(60 * time.Second)
-		}
+		// 	for j := 0; j < int(hub.config.P2p_outbound_limit); j++ {
+		// 		s_p := hub.seed_manager.get_random_peer()
+		// 		if s_p != nil && hub.out_bound_peer_conns[s_p.Ip] == nil && hub.in_bound_peer_conns[s_p.Ip] == nil {
+		// 			request_build_outbound_conn(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
+		// 		}
+		// 	}
+		// 	time.Sleep(60 * time.Second)
+		// }
 
 		//try directly connect to seed
 		if len(hub.out_bound_peer_conns) == 0 {
@@ -197,7 +207,7 @@ func deamon_keep_outbounds(hub *Hub) {
 			if sp != nil {
 				request_build_outbound_conn(hub, sp)
 			}
-			time.Sleep(30 * time.Second)
+			time.Sleep(60 * time.Second)
 		}
 
 		//[eclipse attack] never pick from tried table when no outbound connection established yet

@@ -27,16 +27,22 @@ func NewSeedManager(seeds []*Seed, ref *reference.Reference) *SeedManager {
 	filtered_seeds := []*Seed{}
 
 	for _, s := range seeds {
-		ipv6 := net.ParseIP(s.Host).To16()
-		if ipv6 != nil {
-			//we don't support ipv6
-			continue
-		}
 		if s.Port > 65535 {
 			continue
 		}
-		//can be ipv4 or domain
-		filtered_seeds = append(filtered_seeds, s)
+		ipv4 := net.ParseIP(s.Host).To4()
+		if ipv4 != nil {
+			filtered_seeds = append(filtered_seeds, s)
+		} else {
+			ipv6 := net.ParseIP(s.Host).To16()
+			if ipv6 != nil {
+				//we don't support ipv6
+				continue
+			} else {
+				//domain is supported
+				filtered_seeds = append(filtered_seeds, s)
+			}
+		}
 	}
 
 	return &SeedManager{
@@ -102,11 +108,6 @@ func (sm *SeedManager) pick_random_seed_peer() *Peer {
 	rand.Shuffle(len(sm.seeds), func(i, j int) { sm.seeds[i], sm.seeds[j] = sm.seeds[j], sm.seeds[i] })
 
 	for _, seed := range sm.seeds {
-		ipv6 := net.ParseIP(seed.Host).To16()
-		if ipv6 != nil {
-			//we don't support ipv6
-			continue
-		}
 
 		ipv4 := net.ParseIP(seed.Host).To4()
 		if ipv4 != nil {
@@ -114,20 +115,27 @@ func (sm *SeedManager) pick_random_seed_peer() *Peer {
 				Ip:   ipv4.String(),
 				Port: seed.Port,
 			}
-		}
+		} else {
 
-		//it maybe some domain just try to
-		//get the ipv4 of it
-		ips, lookup_err := net.LookupIP(seed.Host)
-		if lookup_err != nil {
-			continue
-		}
+			ipv6 := net.ParseIP(seed.Host).To16()
+			if ipv6 != nil {
+				//we don't support ipv6
+				continue
+			}
 
-		for _, ip := range ips {
-			if ipv4 := ip.To4(); ipv4 != nil {
-				return &Peer{
-					Ip:   ipv4.String(),
-					Port: seed.Port,
+			//it maybe some domain just try to
+			//get the ipv4 of it
+			ips, lookup_err := net.LookupIP(seed.Host)
+			if lookup_err != nil {
+				continue
+			}
+
+			for _, ip := range ips {
+				if ipv4 := ip.To4(); ipv4 != nil {
+					return &Peer{
+						Ip:   ipv4.String(),
+						Port: seed.Port,
+					}
 				}
 			}
 		}
