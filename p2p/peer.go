@@ -16,6 +16,7 @@ type Peer struct {
 }
 
 type PeerConn struct {
+	closed          bool
 	peer            *Peer
 	conn            *net.Conn
 	rpc_client      *byte_rpc.Client
@@ -30,6 +31,7 @@ func new_peer_conn(peer *Peer, heart_beat_secs int64, close_callback func(*PeerC
 		close_callback:  close_callback,
 		handlers:        make(map[string]func([]byte) []byte),
 		heart_beat_secs: heart_beat_secs,
+		closed:          false,
 	}
 }
 
@@ -57,14 +59,13 @@ func (peerConn *PeerConn) register_rpc_handlers(handlers map[string]func([]byte)
 func (peerConn *PeerConn) start_heart_beat(check_interval_secs int64, closed_callback func()) {
 
 	go func() {
-
 		last_check_time := time.Now().Unix()
-
 		for {
-
 			time.Sleep(2 * time.Second)
 			if time.Now().Unix()-last_check_time < check_interval_secs {
-				continue
+				if peerConn.closed {
+					break
+				}
 			}
 
 			///continue
@@ -261,6 +262,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			Ip:   pc.peer.Ip,
 			Port: pc.peer.Port,
 		}, pc.heart_beat_secs, func(pc *PeerConn) {
+			pc.closed = true
 			if err != nil {
 				hub.logger.Errorln("METHOD_BUILD_OUTBOUND conn close with error:", err)
 			} else {

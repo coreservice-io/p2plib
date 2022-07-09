@@ -11,7 +11,9 @@ func dail_ping_peer(p *Peer) (uint64, error) {
 	pc := new_peer_conn(&Peer{
 		Ip:   p.Ip,
 		Port: p.Port,
-	}, 0, nil)
+	}, 0, func(pc *PeerConn) {
+		pc.closed = true
+	})
 
 	err := pc.dail_with_timeout(5 * time.Second)
 	if err != nil {
@@ -44,7 +46,9 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 	outbound_peer := new_peer_conn(&Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
-	}, 0, nil)
+	}, 0, func(pc *PeerConn) {
+		pc.closed = true
+	})
 
 	err := outbound_peer.dial()
 	if err != nil {

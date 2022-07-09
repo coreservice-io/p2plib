@@ -68,7 +68,10 @@ func (sm *SeedManager) update_peer_pool(host string, port uint16) {
 		return
 	}
 	///////////////
-	temp_seed_peer := new_peer_conn(nil, 0, nil).set_conn(&conn).run()
+	temp_seed_peer := new_peer_conn(nil, 0, func(pc *PeerConn) {
+		pc.closed = true
+	}).set_conn(&conn).run()
+
 	defer temp_seed_peer.close()
 
 	rmsg, err := temp_seed_peer.send_msg(METHOD_PEERLIST, nil)

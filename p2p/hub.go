@@ -179,6 +179,7 @@ func (hub *Hub) start_server() error {
 
 			////////////////////////////////////////////////
 			pc := new_peer_conn(&Peer{Ip: ip}, hub.config.Heart_beat_secs, func(pc *PeerConn) {
+				pc.closed = true
 				if err != nil {
 					hub.logger.Errorln("connection close with error:", err)
 				}
