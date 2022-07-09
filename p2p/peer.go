@@ -197,7 +197,10 @@ func (pc *PeerConn) reg_close() *PeerConn {
 func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 	pc.register_handler(METHOD_BUILD_INBOUND, func(input []byte) []byte {
-		if !hub.is_outbound_target(pc.peer.Ip) {
+
+		conn_key := decode_build_inbound(input)
+
+		if !hub.is_outbound_target(conn_key) {
 			hub.logger.Debugln("not is_outbound_target", pc.peer.Ip)
 			time.AfterFunc(time.Second*1, func() { pc.close() })
 			return []byte(MSG_REJECTED)
@@ -248,7 +251,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 	pc.register_handler(METHOD_BUILD_OUTBOUND, func(input []byte) []byte {
 
-		port, err := decode_build_conn(input)
+		port, conn_key, err := decode_build_outbound(input)
 		if err != nil {
 			return []byte(MSG_PORT_ERR)
 		}
@@ -308,7 +311,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			}
 			inbound_peer.run()
 			////////////////////////////////
-			bi_r, bi_err := inbound_peer.send_msg(METHOD_BUILD_INBOUND, nil)
+			bi_r, bi_err := inbound_peer.send_msg(METHOD_BUILD_INBOUND, encode_build_inbound(conn_key))
 			if bi_err == nil && string(bi_r) == MSG_APPROVED {
 				inbound_peer.start_heart_beat(inbound_peer.heart_beat_secs, func() {
 					hub.logger.Debugln("heart_beat  inside METHOD_BUILD_OUTBOUND closed")

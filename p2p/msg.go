@@ -34,21 +34,36 @@ func decode_ping(ping_bytes []byte) (uint64, error) {
 	return binary.LittleEndian.Uint64(ping_bytes), nil
 }
 
-func encode_build_conn(port uint16) []byte {
-	port_bytes := make([]byte, 2)
-	binary.LittleEndian.PutUint16(port_bytes, port)
-	return port_bytes
+func encode_build_inbound(conn_key uint32) []byte {
+	key_bytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(key_bytes, conn_key)
+	return key_bytes
 }
 
-func decode_build_conn(port_bytes []byte) (uint16, error) {
-	if len(port_bytes) != 2 {
-		return 0, errors.New("decode_build_conn input error")
+func decode_build_inbound(conn_key_bytes []byte) uint32 {
+	return binary.LittleEndian.Uint32(conn_key_bytes)
+}
+
+func encode_build_outbound(port uint16, conn_key uint32) []byte {
+	port_bytes := make([]byte, 2)
+	binary.LittleEndian.PutUint16(port_bytes, port)
+	key_bytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(key_bytes, conn_key)
+	return append(port_bytes, key_bytes...)
+}
+
+func decode_build_outbound(build_conn_bytes []byte) (uint16, uint32, error) {
+	if len(build_conn_bytes) != 6 {
+		return 0, 0, errors.New("decode_build_conn input error")
 	}
-	port := binary.LittleEndian.Uint16(port_bytes)
+	port := binary.LittleEndian.Uint16(build_conn_bytes[0:2])
 	if port > 65535 {
-		return port, errors.New("port range err:" + strconv.Itoa(int(port)))
+		return port, 0, errors.New("port range err:" + strconv.Itoa(int(port)))
 	}
-	return port, nil
+
+	conn_key := binary.LittleEndian.Uint32(build_conn_bytes[2:6])
+
+	return port, conn_key, nil
 }
 
 func encode_peerlist(plist []*Peer) []byte {

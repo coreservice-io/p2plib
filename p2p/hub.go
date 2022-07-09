@@ -122,9 +122,8 @@ func (hub *Hub) RegisterHandlers(method string, handler func([]byte) []byte) err
 	return nil
 }
 
-func (hub *Hub) is_outbound_target(ip string) bool {
-	key := "outbound_target:" + ip
-	result, _ := hub.ref.Get(key)
+func (hub *Hub) is_outbound_target(conn_key uint32) bool {
+	result, _ := hub.ref.Get(strconv.Itoa(int(conn_key)))
 	if result == nil {
 		return false
 	} else {
@@ -132,13 +131,12 @@ func (hub *Hub) is_outbound_target(ip string) bool {
 	}
 }
 
-func (hub *Hub) set_outbound_target(ip string) {
-
-	fmt.Println("set_outbound_target ", ip)
-
-	key := "outbound_target:" + ip
+func (hub *Hub) set_outbound_target() uint32 {
+	random_num := rand.Uint32()
+	fmt.Println("set_outbound_target ", random_num)
 	value := true
-	hub.ref.Set(key, &value, 1800) //30 minutes
+	hub.ref.Set(strconv.Itoa(int(random_num)), &value, 1800) //30 minutes
+	return random_num
 }
 
 func (hub *Hub) start_server() error {

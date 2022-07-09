@@ -41,10 +41,6 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 		return nil
 	}
 
-	hub.set_outbound_target(peer.Ip)
-
-	port_bytes := encode_build_conn(peer.Port)
-
 	outbound_peer := new_peer_conn(&Peer{
 		Ip:   peer.Ip,
 		Port: peer.Port,
@@ -56,8 +52,6 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 		outbound_peer.close()
 		return err
 	}
-
-	hub.logger.Infoln("strange ", (*outbound_peer.conn).RemoteAddr().String(), "with dail:", peer.Ip)
 
 	outbound_peer.run()
 
@@ -81,8 +75,11 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 	if peer_hub_id == hub.id {
 		return errors.New("build conn to self")
 	}
+
+	build_conn_bytes := encode_build_outbound(peer.Port, hub.set_outbound_target())
+
 	////////////////////////////////////////////////////
-	_, err = outbound_peer.send_msg(METHOD_BUILD_OUTBOUND, port_bytes)
+	_, err = outbound_peer.send_msg(METHOD_BUILD_OUTBOUND, build_conn_bytes)
 	if err != nil {
 		return err
 	}
