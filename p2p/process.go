@@ -160,7 +160,8 @@ func deamon_keep_outbounds(hub *Hub) {
 						dial_build_outbound(hub, peer)
 					}
 					kvdb_set_outbounds(hub.kvdb, []*Peer{}) //reset kvdb to prevent re-dial
-					time.Sleep(30 * time.Second)
+					//time.Sleep(30 * time.Second)
+					time.Sleep(5 * time.Second)
 				}
 			}
 		}
@@ -178,7 +179,8 @@ func deamon_keep_outbounds(hub *Hub) {
 					dial_build_outbound(hub, &Peer{Ip: s_p.Ip, Port: s_p.Port})
 				}
 			}
-			time.Sleep(60 * time.Second)
+			//time.Sleep(60 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 
 		//try directly connect to seed
