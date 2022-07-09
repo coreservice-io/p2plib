@@ -16,21 +16,20 @@ type Peer struct {
 }
 
 type PeerConn struct {
-	//byte_rpc_conf        *byte_rpc.Config
-	peer                 *Peer
-	conn                 *net.Conn
-	rpc_client           *byte_rpc.Client
-	close_callback       func(*PeerConn)
-	handlers             map[string]func([]byte) []byte //registered handlers
-	heart_beat_duratioin time.Duration
+	peer            *Peer
+	conn            *net.Conn
+	rpc_client      *byte_rpc.Client
+	close_callback  func(*PeerConn)
+	handlers        map[string]func([]byte) []byte //registered handlers
+	heart_beat_secs int64
 }
 
-func new_peer_conn(peer *Peer, heart_beat_duratioin time.Duration, close_callback func(*PeerConn)) *PeerConn {
+func new_peer_conn(peer *Peer, heart_beat_secs int64, close_callback func(*PeerConn)) *PeerConn {
 	return &PeerConn{
-		peer:                 peer,
-		close_callback:       close_callback,
-		handlers:             make(map[string]func([]byte) []byte),
-		heart_beat_duratioin: heart_beat_duratioin,
+		peer:            peer,
+		close_callback:  close_callback,
+		handlers:        make(map[string]func([]byte) []byte),
+		heart_beat_secs: heart_beat_secs,
 	}
 }
 
@@ -55,25 +54,30 @@ func (peerConn *PeerConn) register_rpc_handlers(handlers map[string]func([]byte)
 	}
 }
 
-func (peerConn *PeerConn) start_heart_beat(check_interval time.Duration, closed_callback func(error)) {
+func (peerConn *PeerConn) start_heart_beat(check_interval_secs int64, closed_callback func()) {
 
 	go func() {
 
-		for {
-			time.Sleep(check_interval)
+		last_check_time := time.Now().Unix()
 
-			pr, perr := peerConn.send_msg(METHOD_PING, nil)
-			if perr != nil {
-				peerConn.close()
-				closed_callback(perr)
-				break
+		for {
+
+			time.Sleep(2 * time.Second)
+			if time.Now().Unix()-last_check_time < check_interval_secs {
+				continue
 			}
 
-			if len(pr) != 8 {
-				closed_callback(errors.New("ping result error"))
+			///continue
+			last_check_time = time.Now().Unix()
+
+			pr, perr := peerConn.send_msg(METHOD_PING, nil)
+			if perr != nil || len(pr) != 8 {
 				break
 			}
 		}
+
+		peerConn.close()
+		closed_callback()
 
 	}()
 }
@@ -226,10 +230,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 		}
 
 		///////////////////////
-		pc.start_heart_beat(pc.heart_beat_duratioin, func(err error) {
-			if err != nil {
-				hub.logger.Errorln("heart_beat error inside METHOD_BUILD_INBOUND", err)
-			}
+		pc.start_heart_beat(pc.heart_beat_secs, func() {
 			hub.logger.Debugln("heart_beat inside METHOD_BUILD_INBOUND closed")
 		})
 
@@ -251,7 +252,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 		inbound_peer := new_peer_conn(&Peer{
 			Ip:   pc.peer.Ip,
 			Port: pc.peer.Port,
-		}, pc.heart_beat_duratioin, func(pc *PeerConn) {
+		}, pc.heart_beat_secs, func(pc *PeerConn) {
 			if err != nil {
 				hub.logger.Errorln("METHOD_BUILD_OUTBOUND conn close with error:", err)
 			} else {
@@ -304,10 +305,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			////////////////////////////////
 			bi_r, bi_err := inbound_peer.send_msg(METHOD_BUILD_INBOUND, nil)
 			if bi_err == nil && string(bi_r) == MSG_APPROVED {
-				inbound_peer.start_heart_beat(inbound_peer.heart_beat_duratioin, func(err error) {
-					if err != nil {
-						hub.logger.Errorln("heart_beat error inside METHOD_BUILD_OUTBOUND", err)
-					}
+				inbound_peer.start_heart_beat(inbound_peer.heart_beat_secs, func() {
 					hub.logger.Debugln("heart_beat  inside METHOD_BUILD_OUTBOUND closed")
 				})
 			} else {

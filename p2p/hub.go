@@ -13,11 +13,11 @@ import (
 )
 
 type HubConfig struct {
-	Port                uint16
-	Heart_beat_duration time.Duration
-	Inbound_limit       uint // set this to be big for seed nodes
-	Outbound_limit      uint // ==0 for seed nodes
-	Conns_limit         uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
+	Port            uint16
+	Heart_beat_secs int64
+	Inbound_limit   uint // set this to be big for seed nodes
+	Outbound_limit  uint // ==0 for seed nodes
+	Conns_limit     uint // how many connnections can exist to this hub , bigger then >> P2p_outbound_limit
 }
 
 func init() {
@@ -176,7 +176,7 @@ func (hub *Hub) start_server() error {
 			}
 
 			////////////////////////////////////////////////
-			pc := new_peer_conn(&Peer{Ip: ip}, hub.config.Heart_beat_duration, func(pc *PeerConn) {
+			pc := new_peer_conn(&Peer{Ip: ip}, hub.config.Heart_beat_secs, func(pc *PeerConn) {
 				if err != nil {
 					hub.logger.Errorln("connection close with error:", err)
 				}
@@ -198,7 +198,7 @@ func (hub *Hub) start_server() error {
 			pc.set_conn(&conn).reg_close().reg_ping(hub).reg_peerlist(hub).reg_build_inbound(hub).reg_build_outbound(hub).run()
 
 			//close the conn which is used for build_conn callback
-			time.AfterFunc(hub.config.Heart_beat_duration, func() {
+			time.AfterFunc(time.Duration(hub.config.Heart_beat_secs)*time.Second, func() {
 				outb_pc := hub.out_bound_peer_conns[ip]
 				if outb_pc != nil && outb_pc.conn == &conn {
 					//conn became outbound conn
@@ -218,10 +218,10 @@ func (hub *Hub) Start() {
 
 	hub.start_server()
 
-	go deamon_feeler(hub.table_manager)
-	go deamon_update_new_table_buffer(hub.table_manager)
-	go deamon_save_kvdb_tried_table(hub.table_manager)
+	//	go deamon_feeler(hub.table_manager)
+	//	go deamon_update_new_table_buffer(hub.table_manager)
+	//	go deamon_save_kvdb_tried_table(hub.table_manager)
 	go deamon_keep_outbounds(hub)
-	go deamon_refresh_peerlist(hub)
+	//	go deamon_refresh_peerlist(hub)
 
 }
