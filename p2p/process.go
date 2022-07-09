@@ -66,6 +66,7 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 	/////////check  ping is myself/////////////////////
 	pr, perr := outbound_peer.send_msg(METHOD_PING, nil)
 	if perr != nil {
+		hub.logger.Debugln("dial_build_outbound ping error", peer.Ip, peer.Port)
 		return perr
 	}
 
@@ -149,7 +150,7 @@ func deamon_keep_outbounds(hub *Hub) {
 		//if some connection break (maybe caused by feeler connection )
 		//try to reconnect the old connection
 		if len(hub.out_bound_peer_conns) == 0 {
-			hub.logger.Infoln("try rebuild last outbound connections from dbkv ")
+			hub.logger.Debugln("try rebuild last outbound connections from dbkv ")
 
 			plist, err := kvdb_get_outbounds(hub.kvdb)
 			if err != nil {
@@ -185,6 +186,7 @@ func deamon_keep_outbounds(hub *Hub) {
 
 		//try directly connect to seed
 		if len(hub.out_bound_peer_conns) == 0 {
+			hub.logger.Debugln("try directly connect to seed")
 			sp := hub.seed_manager.pick_random_seed_peer()
 			if sp != nil {
 				dial_build_outbound(hub, sp)

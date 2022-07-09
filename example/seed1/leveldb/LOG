@@ -1,0 +1,25 @@
+=============== Jul 9, 2022 (CST) ===============
+10:09:41.123943 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+10:09:41.163629 db@open opening
+10:09:41.164310 version@stat F·[] S·0B[] Sc·[]
+10:09:41.204402 db@janitor F·2 G·0
+10:09:41.204483 db@open done T·40.817958ms
+=============== Jul 9, 2022 (CST) ===============
+10:10:44.899529 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+10:10:44.899978 version@stat F·[] S·0B[] Sc·[]
+10:10:44.899988 db@open opening
+10:10:44.900060 journal@recovery F·1
+10:10:44.900391 journal@recovery recovering @1
+10:10:44.900885 version@stat F·[] S·0B[] Sc·[]
+10:10:44.962053 db@janitor F·2 G·0
+10:10:44.962127 db@open done T·62.130041ms
+=============== Jul 9, 2022 (CST) ===============
+10:12:22.599771 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
+10:12:22.600122 version@stat F·[] S·0B[] Sc·[]
+10:12:22.600131 db@open opening
+10:12:22.600182 journal@recovery F·1
+10:12:22.600503 journal@recovery recovering @2
+10:12:22.621043 memdb@flush created L0@4 N·1 S·126B "out..nds,v1":"out..nds,v1"
+10:12:22.621473 version@stat F·[1] S·126B[126B] Sc·[0.25]
+10:12:22.683621 db@janitor F·3 G·0
+10:12:22.683666 db@open done T·83.509625ms
