@@ -198,7 +198,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 	pc.register_handler(METHOD_BUILD_INBOUND, func(input []byte) []byte {
 		if !hub.is_outbound_target(pc.peer.Ip) {
-			hub.logger.Debugln("is_outbound_target!", pc.peer.Ip)
+			hub.logger.Debugln("not is_outbound_target", pc.peer.Ip)
 			time.AfterFunc(time.Second*1, func() { pc.close() })
 			return []byte(MSG_REJECTED)
 		}

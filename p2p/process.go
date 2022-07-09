@@ -56,6 +56,9 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 		outbound_peer.close()
 		return err
 	}
+
+	hub.logger.Infoln("strange ", (*outbound_peer.conn).RemoteAddr().String(), "with dail:", peer.Ip)
+
 	outbound_peer.run()
 
 	defer func() {
