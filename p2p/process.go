@@ -96,6 +96,7 @@ func deamon_refresh_peerlist(hub *Hub) {
 		/////////////////////////////
 		hub.in_bound_peer_lock.Lock()
 		hub.out_bound_peer_lock.Lock()
+		hub.logger.Infoln("lock4")
 
 		for _, pc := range hub.in_bound_peer_conns {
 			all_pcs = append(all_pcs, pc)
@@ -106,6 +107,7 @@ func deamon_refresh_peerlist(hub *Hub) {
 		}
 
 		hub.out_bound_peer_lock.Unlock()
+		hub.logger.Infoln("unlock4")
 		hub.in_bound_peer_lock.Unlock()
 		/////////////////////////////
 
@@ -213,6 +215,7 @@ func deamon_keep_outbounds(hub *Hub) {
 
 		/////////////update kvdb outboud conns////////////
 		hub.out_bound_peer_lock.Lock()
+		hub.logger.Infoln("lock5")
 		plist := []*Peer{}
 		for _, out_pc := range hub.out_bound_peer_conns {
 			plist = append(plist, &Peer{
@@ -221,7 +224,8 @@ func deamon_keep_outbounds(hub *Hub) {
 			})
 		}
 		kvdb_set_outbounds(hub.kvdb, plist)
-		defer hub.out_bound_peer_lock.Unlock()
+		hub.out_bound_peer_lock.Unlock()
+		hub.logger.Infoln("unlock5")
 		/////////////////////////////////////////////////
 
 	}

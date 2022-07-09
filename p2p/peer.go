@@ -141,10 +141,12 @@ func (pc *PeerConn) reg_peerlist(hub *Hub) *PeerConn {
 		pl := make(map[string]*Peer)
 
 		hub.out_bound_peer_lock.Lock()
+		hub.logger.Infoln("lock2")
 		for _, opc := range hub.out_bound_peer_conns {
 			pl[opc.peer.Ip] = opc.peer
 		}
 		hub.out_bound_peer_lock.Unlock()
+		hub.logger.Infoln("unlock2")
 
 		hub.in_bound_peer_lock.Lock()
 		for _, ipc := range hub.in_bound_peer_conns {
@@ -196,6 +198,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 	pc.register_handler(METHOD_BUILD_INBOUND, func(input []byte) []byte {
 		if !hub.is_outbound_target(pc.peer.Ip) {
+			hub.logger.Debugln("is_outbound_target!", pc.peer.Ip)
 			time.AfterFunc(time.Second*1, func() { pc.close() })
 			return []byte(MSG_REJECTED)
 		}
@@ -212,9 +215,11 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 		//////clear the old conn /////////////////////
 		hub.out_bound_peer_lock.Lock()
+		hub.logger.Infoln("lock3")
 		old_ob_p := hub.out_bound_peer_conns[pc.peer.Ip]
 		hub.out_bound_peer_conns[pc.peer.Ip] = pc
 		hub.out_bound_peer_lock.Unlock()
+		hub.logger.Infoln("unlock3")
 		////////////////////////////////
 
 		//kick out the old stable conn
@@ -309,7 +314,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 					hub.logger.Debugln("heart_beat  inside METHOD_BUILD_OUTBOUND closed")
 				})
 			} else {
-				hub.logger.Errorln("METHOD_BUILD_INBOUND error:", bi_err, "result:", bi_r)
+				hub.logger.Errorln("METHOD_BUILD_INBOUND error:", bi_err, "result:", string(bi_r))
 				inbound_peer.send_msg(METHOD_CLOSE, nil)
 				inbound_peer.close()
 			}
