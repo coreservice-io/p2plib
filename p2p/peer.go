@@ -62,10 +62,13 @@ func (peerConn *PeerConn) start_heart_beat(check_interval_secs int64, closed_cal
 		last_check_time := time.Now().Unix()
 		for {
 			time.Sleep(2 * time.Second)
+
+			if peerConn.closed {
+				break
+			}
+
 			if time.Now().Unix()-last_check_time < check_interval_secs {
-				if peerConn.closed {
-					break
-				}
+				continue
 			}
 
 			///continue
@@ -201,7 +204,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 		conn_key := decode_build_inbound(input)
 
-		if !hub.is_outbound_target(conn_key) {
+		if !hub.pop_outbound_target(conn_key) {
 			hub.logger.Debugln("not is_outbound_target", pc.peer.Ip)
 			time.AfterFunc(time.Second*1, func() { pc.close() })
 			return []byte(MSG_REJECTED)
@@ -324,6 +327,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 				inbound_peer.close()
 			}
 		}()
+
 		return []byte(MSG_APPROVED)
 	})
 	return pc

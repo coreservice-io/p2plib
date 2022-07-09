@@ -59,6 +59,7 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 
 	outbound_peer.run()
 
+	///////important to close it !!!//////////////////////
 	defer func() {
 		outbound_peer.send_msg(METHOD_CLOSE, nil)
 		outbound_peer.close()

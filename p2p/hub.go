@@ -122,11 +122,13 @@ func (hub *Hub) RegisterHandlers(method string, handler func([]byte) []byte) err
 	return nil
 }
 
-func (hub *Hub) is_outbound_target(conn_key uint32) bool {
-	result, _ := hub.ref.Get(strconv.Itoa(int(conn_key)))
+func (hub *Hub) pop_outbound_target(conn_key uint32) bool {
+	str_key := strconv.Itoa(int(conn_key))
+	result, _ := hub.ref.Get(str_key)
 	if result == nil {
 		return false
 	} else {
+		hub.ref.Delete(str_key)
 		return true
 	}
 }
