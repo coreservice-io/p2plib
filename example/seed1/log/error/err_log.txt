@@ -1,0 +1,4 @@
+2022-07-09 06:24:52 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-09 06:25:57 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-09 06:27:02 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-09 06:28:07 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
