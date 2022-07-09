@@ -66,7 +66,7 @@ func dial_build_outbound(hub *Hub, peer *Peer) error {
 	/////////check  ping is myself/////////////////////
 	pr, perr := outbound_peer.send_msg(METHOD_PING, nil)
 	if perr != nil {
-		hub.logger.Debugln("dial_build_outbound ping error", peer.Ip, peer.Port)
+		hub.logger.Debugln("dial_build_outbound ping error", perr, peer.Ip, peer.Port)
 		return perr
 	}
 
