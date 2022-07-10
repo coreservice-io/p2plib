@@ -1,9 +1,0 @@
-2022-07-10 06:24:11 [INFO] lock4
-2022-07-10 06:24:11 [DEBU] try rebuild last outbound connections from dbkv 
-2022-07-10 06:24:11 [INFO] unlock4
-2022-07-10 06:24:11 [WARN] kvdb_get_outbounds warning: leveldb: not found
-2022-07-10 06:24:16 [DEBU] try directly connect to seed
-2022-07-10 06:24:41 [INFO] ////////////////////////////////////////
-2022-07-10 06:24:41 [INFO] in_bound_peers
-2022-07-10 06:24:41 [INFO] out_bound_peers
-2022-07-10 06:24:41 [INFO] ////////////////////////////////////////
