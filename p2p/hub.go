@@ -248,11 +248,11 @@ func (hub *Hub) Start() {
 
 	hub.start_server()
 
-	//	go deamon_feeler(hub.table_manager)
-	//	go deamon_update_new_table_buffer(hub.table_manager)
-	//	go deamon_save_kvdb_tried_table(hub.table_manager)
+	go deamon_feeler(hub.table_manager)
+	go deamon_update_new_table_buffer(hub.table_manager)
+	go deamon_save_kvdb_tried_table(hub.table_manager)
 	go deamon_keep_outbounds(hub)
-	//	go deamon_refresh_peerlist(hub)
+	go deamon_refresh_peerlist(hub)
 
 	go hub.debug_conn_printing()
 

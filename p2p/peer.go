@@ -315,7 +315,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 				inbound_peer.close()
 			}
 			inbound_peer.run()
-			////////////////////////////////
+			/////////////////////////////////////////
 			bi_r, bi_err := inbound_peer.send_msg(METHOD_BUILD_INBOUND, encode_build_inbound(conn_key))
 			if bi_err == nil && string(bi_r) == MSG_APPROVED {
 				inbound_peer.start_heart_beat(inbound_peer.heart_beat_secs, func() {

@@ -1,0 +1,345 @@
+2022-07-10 00:56:02 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 00:56:02 [WARN] kvdb_get_outbounds warning: leveldb: not found
+2022-07-10 00:56:07 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:56:07 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:56:07 [INFO] lock2
+2022-07-10 00:56:07 [INFO] unlock2
+2022-07-10 00:56:07 [INFO] lock1
+2022-07-10 00:56:07 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:56:07 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:56:07 [INFO] unlock1
+2022-07-10 00:56:07 [DEBU] try directly connect to seed
+2022-07-10 00:56:10 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:56:10 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:56:10 [INFO] lock2
+2022-07-10 00:56:10 [INFO] unlock2
+2022-07-10 00:56:10 [INFO] lock1
+2022-07-10 00:56:10 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:56:10 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:56:10 [INFO] unlock1
+2022-07-10 00:56:12 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:56:12 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:56:12 [INFO] lock1
+2022-07-10 00:56:12 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:56:12 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:56:12 [INFO] unlock1
+2022-07-10 00:56:15 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:56:15 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:56:15 [DEBU] METHOD_BUILD_OUTBOUND kick out old in_bound_conn
+2022-07-10 00:56:15 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 00:56:15 [INFO] lock1
+2022-07-10 00:56:15 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:56:15 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:56:15 [INFO] unlock1
+2022-07-10 00:56:15 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-10 00:56:15 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 00:56:16 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 00:56:32 [INFO] ////////////////////////////////////////
+2022-07-10 00:56:32 [INFO] in_bound_peers
+2022-07-10 00:56:32 [INFO] out_bound_peers
+2022-07-10 00:56:32 [INFO] ////////////////////////////////////////
+2022-07-10 00:57:02 [INFO] ////////////////////////////////////////
+2022-07-10 00:57:02 [INFO] in_bound_peers
+2022-07-10 00:57:02 [INFO] out_bound_peers
+2022-07-10 00:57:02 [INFO] ////////////////////////////////////////
+2022-07-10 00:57:07 [INFO] lock5
+2022-07-10 00:57:07 [INFO] unlock5
+2022-07-10 00:57:07 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 00:57:12 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:57:12 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:57:12 [INFO] lock2
+2022-07-10 00:57:12 [INFO] unlock2
+2022-07-10 00:57:12 [INFO] lock1
+2022-07-10 00:57:12 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:57:12 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:57:12 [INFO] unlock1
+2022-07-10 00:57:12 [DEBU] try directly connect to seed
+2022-07-10 00:57:15 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:57:15 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:57:15 [INFO] lock2
+2022-07-10 00:57:15 [INFO] unlock2
+2022-07-10 00:57:15 [INFO] lock1
+2022-07-10 00:57:15 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:57:15 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:57:15 [INFO] unlock1
+2022-07-10 00:57:17 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:57:17 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:57:17 [INFO] lock1
+2022-07-10 00:57:17 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:57:17 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:57:17 [INFO] unlock1
+2022-07-10 00:57:20 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:57:20 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:57:20 [DEBU] METHOD_BUILD_OUTBOUND kick out old in_bound_conn
+2022-07-10 00:57:20 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 00:57:20 [INFO] lock1
+2022-07-10 00:57:20 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:57:20 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:57:20 [INFO] unlock1
+2022-07-10 00:57:20 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-10 00:57:20 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 00:57:21 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 00:57:32 [INFO] ////////////////////////////////////////
+2022-07-10 00:57:32 [INFO] in_bound_peers
+2022-07-10 00:57:32 [INFO] out_bound_peers
+2022-07-10 00:57:32 [INFO] ////////////////////////////////////////
+2022-07-10 00:57:53 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:57:53 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:57:53 [INFO] lock2
+2022-07-10 00:57:53 [INFO] unlock2
+2022-07-10 00:57:53 [INFO] lock1
+2022-07-10 00:57:53 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:57:53 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:57:53 [INFO] unlock1
+2022-07-10 00:57:58 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:57:58 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:57:58 [INFO] lock1
+2022-07-10 00:57:58 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:57:58 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:57:58 [INFO] unlock1
+2022-07-10 00:58:02 [INFO] ////////////////////////////////////////
+2022-07-10 00:58:02 [INFO] in_bound_peers
+2022-07-10 00:58:02 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 00:58:02 [INFO] out_bound_peers
+2022-07-10 00:58:02 [INFO] ////////////////////////////////////////
+2022-07-10 00:58:12 [INFO] lock5
+2022-07-10 00:58:12 [INFO] unlock5
+2022-07-10 00:58:12 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 00:58:17 [DEBU] try directly connect to seed
+2022-07-10 00:58:32 [INFO] ////////////////////////////////////////
+2022-07-10 00:58:32 [INFO] in_bound_peers
+2022-07-10 00:58:32 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 00:58:32 [INFO] out_bound_peers
+2022-07-10 00:58:32 [INFO] ////////////////////////////////////////
+2022-07-10 00:59:01 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 00:59:02 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 00:59:02 [INFO] ////////////////////////////////////////
+2022-07-10 00:59:02 [INFO] in_bound_peers
+2022-07-10 00:59:02 [INFO] out_bound_peers
+2022-07-10 00:59:02 [INFO] ////////////////////////////////////////
+2022-07-10 00:59:10 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:59:10 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:59:11 [INFO] lock2
+2022-07-10 00:59:11 [INFO] unlock2
+2022-07-10 00:59:11 [INFO] lock1
+2022-07-10 00:59:11 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:59:11 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:59:11 [INFO] unlock1
+2022-07-10 00:59:16 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 00:59:16 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 00:59:16 [INFO] lock1
+2022-07-10 00:59:16 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 00:59:16 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 00:59:16 [INFO] unlock1
+2022-07-10 00:59:17 [INFO] lock5
+2022-07-10 00:59:17 [INFO] unlock5
+2022-07-10 00:59:17 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 00:59:22 [DEBU] try directly connect to seed
+2022-07-10 00:59:32 [INFO] ////////////////////////////////////////
+2022-07-10 00:59:32 [INFO] in_bound_peers
+2022-07-10 00:59:32 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 00:59:32 [INFO] out_bound_peers
+2022-07-10 00:59:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:00:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:00:02 [INFO] in_bound_peers
+2022-07-10 01:00:02 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:00:02 [INFO] out_bound_peers
+2022-07-10 01:00:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:00:22 [INFO] lock5
+2022-07-10 01:00:22 [INFO] unlock5
+2022-07-10 01:00:22 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 01:00:27 [DEBU] try directly connect to seed
+2022-07-10 01:00:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:00:32 [INFO] in_bound_peers
+2022-07-10 01:00:32 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:00:32 [INFO] out_bound_peers
+2022-07-10 01:00:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:00:33 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:00:33 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:00:33 [INFO] lock2
+2022-07-10 01:00:33 [INFO] unlock2
+2022-07-10 01:00:33 [INFO] lock1
+2022-07-10 01:00:33 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:00:33 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:00:33 [INFO] unlock1
+2022-07-10 01:00:38 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:00:38 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:00:38 [DEBU] METHOD_BUILD_OUTBOUND kick out old in_bound_conn
+2022-07-10 01:00:38 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:00:38 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-10 01:00:38 [INFO] lock1
+2022-07-10 01:00:38 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:00:38 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:00:38 [INFO] unlock1
+2022-07-10 01:00:38 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:00:39 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:00:39 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:00:39 [INFO] lock2
+2022-07-10 01:00:39 [INFO] unlock2
+2022-07-10 01:00:39 [INFO] lock1
+2022-07-10 01:00:39 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:00:39 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:00:39 [INFO] unlock1
+2022-07-10 01:00:40 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 01:00:44 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:00:44 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:00:44 [INFO] lock1
+2022-07-10 01:00:44 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:00:44 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:00:44 [INFO] unlock1
+2022-07-10 01:01:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:01:02 [INFO] in_bound_peers
+2022-07-10 01:01:02 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:01:02 [INFO] out_bound_peers
+2022-07-10 01:01:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:01:27 [INFO] lock5
+2022-07-10 01:01:27 [INFO] unlock5
+2022-07-10 01:01:27 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 01:01:32 [DEBU] try directly connect to seed
+2022-07-10 01:01:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:01:32 [INFO] in_bound_peers
+2022-07-10 01:01:32 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:01:32 [INFO] out_bound_peers
+2022-07-10 01:01:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:01:38 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:01:38 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:01:38 [INFO] lock2
+2022-07-10 01:01:38 [INFO] unlock2
+2022-07-10 01:01:38 [INFO] lock1
+2022-07-10 01:01:38 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:01:38 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:01:38 [INFO] unlock1
+2022-07-10 01:01:43 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:01:43 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:01:43 [DEBU] METHOD_BUILD_OUTBOUND kick out old in_bound_conn
+2022-07-10 01:01:43 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:01:43 [INFO] lock1
+2022-07-10 01:01:43 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:01:43 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:01:43 [INFO] unlock1
+2022-07-10 01:01:43 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-10 01:01:43 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:01:44 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 01:01:44 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:01:44 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:01:44 [INFO] lock2
+2022-07-10 01:01:44 [INFO] unlock2
+2022-07-10 01:01:44 [INFO] lock1
+2022-07-10 01:01:44 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:01:44 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:01:44 [INFO] unlock1
+2022-07-10 01:01:49 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:01:49 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:01:49 [INFO] lock1
+2022-07-10 01:01:49 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:01:49 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:01:49 [INFO] unlock1
+2022-07-10 01:02:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:02:02 [INFO] in_bound_peers
+2022-07-10 01:02:02 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:02:02 [INFO] out_bound_peers
+2022-07-10 01:02:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:02:32 [INFO] lock5
+2022-07-10 01:02:32 [INFO] unlock5
+2022-07-10 01:02:32 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 01:02:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:02:32 [INFO] in_bound_peers
+2022-07-10 01:02:32 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:02:32 [INFO] out_bound_peers
+2022-07-10 01:02:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:02:37 [DEBU] try directly connect to seed
+2022-07-10 01:02:43 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:02:43 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:02:43 [INFO] lock2
+2022-07-10 01:02:43 [INFO] unlock2
+2022-07-10 01:02:43 [INFO] lock1
+2022-07-10 01:02:43 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:02:43 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:02:43 [INFO] unlock1
+2022-07-10 01:02:48 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:02:48 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:02:48 [DEBU] METHOD_BUILD_OUTBOUND kick out old in_bound_conn
+2022-07-10 01:02:48 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:02:48 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-10 01:02:48 [INFO] lock1
+2022-07-10 01:02:48 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:02:48 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:02:48 [INFO] unlock1
+2022-07-10 01:02:48 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:02:49 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 01:02:49 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:02:49 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:02:49 [INFO] lock2
+2022-07-10 01:02:49 [INFO] unlock2
+2022-07-10 01:02:49 [INFO] lock1
+2022-07-10 01:02:49 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:02:49 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:02:49 [INFO] unlock1
+2022-07-10 01:02:54 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:02:54 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:02:54 [INFO] lock1
+2022-07-10 01:02:54 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:02:54 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:02:54 [INFO] unlock1
+2022-07-10 01:03:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:03:02 [INFO] in_bound_peers
+2022-07-10 01:03:02 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:03:02 [INFO] out_bound_peers
+2022-07-10 01:03:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:03:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:03:32 [INFO] in_bound_peers
+2022-07-10 01:03:32 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:03:32 [INFO] out_bound_peers
+2022-07-10 01:03:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:03:37 [INFO] lock5
+2022-07-10 01:03:37 [INFO] unlock5
+2022-07-10 01:03:37 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 01:03:42 [DEBU] try directly connect to seed
+2022-07-10 01:03:48 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:03:48 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:03:48 [INFO] lock2
+2022-07-10 01:03:48 [INFO] unlock2
+2022-07-10 01:03:48 [INFO] lock1
+2022-07-10 01:03:48 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:03:48 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:03:48 [INFO] unlock1
+2022-07-10 01:03:53 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:03:53 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:03:53 [DEBU] METHOD_BUILD_OUTBOUND kick out old in_bound_conn
+2022-07-10 01:03:53 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:03:53 [ERRO] METHOD_BUILD_INBOUND error: <nil> result: rejected
+2022-07-10 01:03:53 [INFO] lock1
+2022-07-10 01:03:53 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:03:53 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:03:53 [INFO] unlock1
+2022-07-10 01:03:53 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:03:54 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 01:03:54 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:03:54 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:03:54 [INFO] lock2
+2022-07-10 01:03:54 [INFO] unlock2
+2022-07-10 01:03:54 [INFO] lock1
+2022-07-10 01:03:54 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:03:54 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:03:54 [INFO] unlock1
+2022-07-10 01:03:59 [INFO] increase_conn_counter add before 10.211.55.2 0
+2022-07-10 01:03:59 [INFO] increase_conn_counter add after 10.211.55.2 1
+2022-07-10 01:03:59 [INFO] lock1
+2022-07-10 01:03:59 [INFO] peerconn close callback  10.211.55.2 1
+2022-07-10 01:03:59 [INFO] peerconn close callback  10.211.55.2 0
+2022-07-10 01:03:59 [INFO] unlock1
+2022-07-10 01:04:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:04:02 [INFO] in_bound_peers
+2022-07-10 01:04:02 [INFO] ip: 10.211.55.2 port: 8081
+2022-07-10 01:04:02 [INFO] out_bound_peers
+2022-07-10 01:04:02 [INFO] ////////////////////////////////////////
+2022-07-10 01:04:19 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-10 01:04:19 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-10 01:04:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:04:32 [INFO] in_bound_peers
+2022-07-10 01:04:32 [INFO] out_bound_peers
+2022-07-10 01:04:32 [INFO] ////////////////////////////////////////
+2022-07-10 01:04:42 [INFO] lock5
+2022-07-10 01:04:42 [INFO] unlock5
+2022-07-10 01:04:42 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-10 01:04:48 [DEBU] try directly connect to seed
