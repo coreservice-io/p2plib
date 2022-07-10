@@ -222,6 +222,28 @@ func (hub *Hub) start_server() error {
 	return nil
 }
 
+func (hub *Hub) debug_conn_printing() {
+
+	for {
+		time.Sleep(30 * time.Second)
+		hub.logger.Infoln("////////////////////////////////////////")
+
+		hub.logger.Infoln("in_bound_peers")
+		for _, p := range hub.in_bound_peer_conns {
+			hub.logger.Infoln("ip:", p.peer.Ip, "port:", p.peer.Port)
+		}
+
+		hub.logger.Infoln("out_bound_peers")
+
+		for _, p := range hub.out_bound_peer_conns {
+			hub.logger.Infoln("ip:", p.peer.Ip, "port:", p.peer.Port)
+		}
+
+		hub.logger.Infoln("////////////////////////////////////////")
+	}
+
+}
+
 func (hub *Hub) Start() {
 
 	hub.start_server()
@@ -231,5 +253,7 @@ func (hub *Hub) Start() {
 	//	go deamon_save_kvdb_tried_table(hub.table_manager)
 	go deamon_keep_outbounds(hub)
 	//	go deamon_refresh_peerlist(hub)
+
+	go hub.debug_conn_printing()
 
 }
