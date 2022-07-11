@@ -98,7 +98,7 @@ func (peerConn *PeerConn) dail_with_timeout(timeout time.Duration) error {
 	dialer := net.Dialer{Timeout: timeout}
 	conn, err := dialer.Dial("tcp", endpoint)
 	if err != nil {
-		return errors.New("buildInboundConn err:" + endpoint)
+		return errors.New("buildInboundConn err:" + err.Error() + "endpoint:" + endpoint)
 	}
 
 	peerConn.conn = &conn
