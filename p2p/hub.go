@@ -228,13 +228,14 @@ func (hub *Hub) debug_conn_printing() {
 		time.Sleep(30 * time.Second)
 		hub.logger.Infoln("////////////////////////////////////////")
 
+		hub.logger.Infoln("conn_counter:", hub.conn_counter)
+
 		hub.logger.Infoln("in_bound_peers")
 		for _, p := range hub.in_bound_peer_conns {
 			hub.logger.Infoln("ip:", p.peer.Ip, "port:", p.peer.Port)
 		}
 
 		hub.logger.Infoln("out_bound_peers")
-
 		for _, p := range hub.out_bound_peer_conns {
 			hub.logger.Infoln("ip:", p.peer.Ip, "port:", p.peer.Port)
 		}

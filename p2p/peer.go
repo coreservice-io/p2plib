@@ -271,22 +271,21 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			return []byte(MSG_PORT_ERR)
 		}
 
-		pc.peer.Port = port
 		inbound_peer := new_peer_conn(&Peer{
 			Ip:   pc.peer.Ip,
-			Port: pc.peer.Port,
-		}, pc.heart_beat_secs, func(pc *PeerConn) {
-			pc.closed = true
+			Port: port,
+		}, pc.heart_beat_secs, func(peer_conn *PeerConn) {
+			peer_conn.closed = true
 			if err != nil {
 				hub.logger.Errorln("METHOD_BUILD_OUTBOUND conn close with error:", err)
 			} else {
 				hub.logger.Debugln("METHOD_BUILD_OUTBOUND conn close without error")
 			}
 			hub.in_bound_peer_lock.Lock()
-			if hub.in_bound_peer_conns[pc.peer.Ip] == pc {
-				delete(hub.in_bound_peer_conns, pc.peer.Ip)
+			if hub.in_bound_peer_conns[peer_conn.peer.Ip] == peer_conn {
+				delete(hub.in_bound_peer_conns, peer_conn.peer.Ip)
 			}
-			(*pc.conn).Close()
+			(*peer_conn.conn).Close()
 			hub.in_bound_peer_lock.Unlock()
 		})
 
@@ -302,8 +301,8 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 
 		//////clear the old conn /////////////////////
 		hub.in_bound_peer_lock.Lock()
-		old_ib_p := hub.in_bound_peer_conns[pc.peer.Ip]
-		hub.in_bound_peer_conns[pc.peer.Ip] = inbound_peer
+		old_ib_p := hub.in_bound_peer_conns[inbound_peer.peer.Ip]
+		hub.in_bound_peer_conns[inbound_peer.peer.Ip] = inbound_peer
 		hub.in_bound_peer_lock.Unlock()
 		////////////////////////////////
 
@@ -313,7 +312,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			old_ib_p.close()
 		}
 
-		old_ob_p := hub.out_bound_peer_conns[pc.peer.Ip]
+		old_ob_p := hub.out_bound_peer_conns[inbound_peer.peer.Ip]
 		if old_ob_p != nil {
 			hub.logger.Debugln("METHOD_BUILD_OUTBOUND kick out old out_bound_conn")
 			old_ob_p.close()
