@@ -316,6 +316,7 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			dial_err := inbound_peer.dial()
 			if dial_err != nil {
 				inbound_peer.close()
+				return
 			}
 			inbound_peer.run()
 			/////////////////////////////////////////
