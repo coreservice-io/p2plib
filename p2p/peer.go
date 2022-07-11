@@ -2,7 +2,6 @@ package p2p
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -134,10 +133,10 @@ func (pc *PeerConn) close() {
 
 func (pc *PeerConn) send_msg(method string, msg []byte) ([]byte, error) {
 
-	fmt.Println("debug,", pc)
-	fmt.Println("debug,", method)
-	fmt.Println("debug,", msg)
-	fmt.Println("debug,", pc.rpc_client)
+	// fmt.Println("debug,", pc)
+	// fmt.Println("debug,", method)
+	// fmt.Println("debug,", msg)
+	// fmt.Println("debug,", pc.rpc_client)
 
 	result, err_code := pc.rpc_client.Call(method, msg)
 	if err_code != 0 {
