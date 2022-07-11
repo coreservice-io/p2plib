@@ -205,6 +205,8 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 		conn_key := decode_build_inbound(input)
 
+		hub.logger.Infoln("METHOD_BUILD_INBOUND incoming with conn key:", conn_key)
+
 		if !hub.pop_outbound_target(conn_key) {
 			hub.logger.Debugln("not is_outbound_target", conn_key, pc.peer.Ip)
 			time.AfterFunc(time.Second*1, func() { pc.close() })
