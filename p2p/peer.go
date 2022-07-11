@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -132,6 +133,12 @@ func (pc *PeerConn) close() {
 }
 
 func (pc *PeerConn) send_msg(method string, msg []byte) ([]byte, error) {
+
+	fmt.Println("debug,", pc)
+	fmt.Println("debug,", method)
+	fmt.Println("debug,", msg)
+	fmt.Println("debug,", pc.rpc_client)
+
 	result, err_code := pc.rpc_client.Call(method, msg)
 	if err_code != 0 {
 		return nil, errors.New(byte_rpc.GetErrMsgStr(uint(err_code)))
@@ -239,7 +246,7 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 		}
 
 		old_ib_p := hub.in_bound_peer_conns[pc.peer.Ip]
-		if old_ib_p != nil {
+		if old_ib_p != nil && old_ib_p != pc {
 			hub.logger.Debugln("METHOD_BUILD_OUTBOUND kick out old in_bound_conn")
 			old_ib_p.close()
 		}

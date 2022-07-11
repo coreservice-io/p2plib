@@ -104,11 +104,15 @@ func deamon_refresh_peerlist(hub *Hub) {
 		hub.logger.Infoln("lock4")
 
 		for _, pc := range hub.in_bound_peer_conns {
-			all_pcs = append(all_pcs, pc)
+			if pc != nil && pc.rpc_client != nil && !pc.closed {
+				all_pcs = append(all_pcs, pc)
+			}
 		}
 
 		for _, pc := range hub.out_bound_peer_conns {
-			all_pcs = append(all_pcs, pc)
+			if pc != nil && pc.rpc_client != nil && !pc.closed {
+				all_pcs = append(all_pcs, pc)
+			}
 		}
 
 		hub.out_bound_peer_lock.Unlock()
@@ -138,7 +142,8 @@ func deamon_refresh_peerlist(hub *Hub) {
 			break
 		}
 
-		time.Sleep(300 * time.Second)
+		//time.Sleep(300 * time.Second)
+		time.Sleep(30 * time.Second)
 	}
 
 }
@@ -198,7 +203,8 @@ func deamon_keep_outbounds(hub *Hub) {
 			if sp != nil {
 				dial_build_outbound(hub, sp)
 			}
-			time.Sleep(60 * time.Second)
+			//time.Sleep(60 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 
 		//[eclipse attack] never pick from tried table when no outbound connection established yet
