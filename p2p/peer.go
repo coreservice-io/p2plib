@@ -245,8 +245,8 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 		}
 
 		old_ib_p := hub.in_bound_peer_conns[pc.peer.Ip]
-		if old_ib_p != nil && old_ib_p != pc {
-			hub.logger.Debugln("METHOD_BUILD_OUTBOUND kick out old in_bound_conn")
+		if old_ib_p != nil {
+			hub.logger.Debugln("METHOD_BUILD_INBOUND kick out old in_bound_conn")
 			old_ib_p.close()
 		}
 
