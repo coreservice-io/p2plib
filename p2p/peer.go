@@ -185,6 +185,7 @@ func (pc *PeerConn) reg_peerlist(hub *Hub) *PeerConn {
 func (pc *PeerConn) reg_ping(hub *Hub) *PeerConn {
 	pc.register_handler(METHOD_PING, func(input []byte) []byte {
 		//change this to hub key to detect self connection
+		hub.logger.Infoln("ping income")
 		return []byte(encode_ping(hub.id))
 	})
 	return pc
