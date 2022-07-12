@@ -76,6 +76,7 @@ func new_table_manager(kvdb KVDB, ref *reference.Reference, logger log.Logger) (
 		kvdb:             kvdb,
 		logger:           logger,
 		random_code:      0,
+		ref:              ref,
 	}, nil
 }
 
