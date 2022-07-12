@@ -164,6 +164,10 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 			}
 		}
 
+		if tm.new_table.Bucket[bucket_p] == nil {
+			tm.new_table.Bucket[bucket_p] = make(map[uint16]*feeler_peer)
+		}
+
 		tm.new_table.Bucket[bucket_p][bucket_offset] = &feeler_peer{
 			Ip_split:    ip_split,
 			Port:        peer.Port,
@@ -248,6 +252,9 @@ func (tm *TableManager) feel_new_table() {
 
 	tt_bucket_pos := tm.get_tried_bucket_position(f_p.Ip_split)
 	bucket_offset := tm.get_bucket_offset(f_p.Ip_split)
+	if tm.tried_table.Bucket[tt_bucket_pos] == nil {
+		tm.tried_table.Bucket[tt_bucket_pos] = make(map[uint16]*feeler_peer)
+	}
 	tm.tried_table.Bucket[tt_bucket_pos][bucket_offset] = f_p
 	tm.tried_table_task = append(tm.tried_table_task, f_p)
 	tm.tried_table_lock.Unlock()
