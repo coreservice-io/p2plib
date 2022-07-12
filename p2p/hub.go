@@ -235,9 +235,19 @@ func (hub *Hub) debug_printing() {
 			hub.logger.Infoln("ip:", p.peer.Ip, "port:", p.peer.Port)
 		}
 
-		hub.logger.Infoln("--------table---------------------------")
+		hub.logger.Infoln("--------new table---------------------------")
 
 		for _, lev1 := range hub.table_manager.new_table.Bucket {
+			for _, lev2 := range lev1 {
+				hub.logger.Infoln("feeler_time:", lev2.Feeler_time)
+				hub.logger.Infoln("ip_split:", lev2.Ip_split)
+				hub.logger.Infoln("port:", lev2.Port)
+			}
+		}
+
+		hub.logger.Infoln("--------new table---------------------------")
+
+		for _, lev1 := range hub.table_manager.tried_table.Bucket {
 			for _, lev2 := range lev1 {
 				hub.logger.Infoln("feeler_time:", lev2.Feeler_time)
 				hub.logger.Infoln("ip_split:", lev2.Ip_split)

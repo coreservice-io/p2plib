@@ -154,7 +154,7 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 
 		ip_split := strings.Split(peer.Ip, ".")
 		//check port format correct
-		if peer.Port == 0 || peer.Port > 65535 {
+		if peer.Port > 65535 {
 			fmt.Println("add_peers_to_new_table---port formate err continue")
 			continue
 		}
