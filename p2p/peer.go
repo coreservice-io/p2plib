@@ -151,12 +151,10 @@ func (pc *PeerConn) reg_peerlist(hub *Hub) *PeerConn {
 		pl := make(map[string]*Peer)
 
 		hub.out_bound_peer_lock.Lock()
-		hub.logger.Infoln("lock2")
 		for _, opc := range hub.out_bound_peer_conns {
 			pl[opc.peer.Ip] = opc.peer
 		}
 		hub.out_bound_peer_lock.Unlock()
-		hub.logger.Infoln("unlock2")
 
 		hub.in_bound_peer_lock.Lock()
 		for _, ipc := range hub.in_bound_peer_conns {
@@ -191,7 +189,6 @@ func (pc *PeerConn) reg_peerlist(hub *Hub) *PeerConn {
 func (pc *PeerConn) reg_ping(hub *Hub) *PeerConn {
 	pc.register_handler(METHOD_PING, func(input []byte) []byte {
 		//change this to hub key to detect self connection
-		hub.logger.Infoln("ping income")
 		return []byte(encode_ping(hub.id))
 	})
 	return pc
@@ -231,11 +228,9 @@ func (pc *PeerConn) reg_build_outbound(hub *Hub) *PeerConn {
 
 		//////clear the old conn /////////////////////
 		hub.out_bound_peer_lock.Lock()
-		hub.logger.Infoln("lock3")
 		old_ob_p := hub.out_bound_peer_conns[pc.peer.Ip]
 		hub.out_bound_peer_conns[pc.peer.Ip] = pc
 		hub.out_bound_peer_lock.Unlock()
-		hub.logger.Infoln("unlock3")
 		////////////////////////////////
 
 		//kick out the old stable conn
@@ -329,7 +324,6 @@ func (pc *PeerConn) reg_build_inbound(hub *Hub) *PeerConn {
 			/////////////////////////////////////////
 			bi_r, bi_err := inbound_peer.send_msg(METHOD_BUILD_INBOUND, encode_build_inbound(conn_key))
 			if bi_err == nil && string(bi_r) == MSG_APPROVED {
-				hub.logger.Infoln("METHOD_BUILD_INBOUND approved!!!!!")
 				inbound_peer.start_heart_beat(inbound_peer.heart_beat_secs, func() {
 					hub.logger.Debugln("heart_beat  inside METHOD_BUILD_OUTBOUND closed")
 				})
