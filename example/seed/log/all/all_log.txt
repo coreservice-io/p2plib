@@ -1,0 +1,285 @@
+2022-07-12 06:47:40 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:47:40 [WARN] kvdb_get_outbounds warning: leveldb: not found
+2022-07-12 06:47:45 [DEBU] try directly connect to seed
+2022-07-12 06:47:50 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:47:55 [DEBU] try directly connect to seed
+2022-07-12 06:48:00 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:48:00 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:00 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:00 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:00 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:05 [DEBU] try directly connect to seed
+2022-07-12 06:48:10 [INFO] ////////////////////////////////////////
+2022-07-12 06:48:10 [INFO] conn_counter: map[]
+2022-07-12 06:48:10 [INFO] in_bound_peers
+2022-07-12 06:48:10 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:48:10 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:48:10 [INFO] out_bound_peers
+2022-07-12 06:48:10 [INFO] --------feeler task-------------------------
+2022-07-12 06:48:10 [INFO] --------new table---------------------------
+2022-07-12 06:48:10 [INFO] --------tried table---------------------------
+2022-07-12 06:48:10 [INFO] ////////////////////////////////////////
+2022-07-12 06:48:10 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:48:10 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:10 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:10 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:10 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:12 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:15 [DEBU] try directly connect to seed
+2022-07-12 06:48:20 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:48:20 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:20 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:20 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:20 [ERRO] buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:48:21 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-12 06:48:22 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-12 06:48:23 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-12 06:48:23 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-12 06:49:28 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:49:34 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:49:39 [DEBU] try directly connect to seed
+2022-07-12 06:49:44 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:49:49 [DEBU] try directly connect to seed
+2022-07-12 06:49:54 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:49:59 [DEBU] try directly connect to seed
+2022-07-12 06:50:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:50:04 [INFO] conn_counter: map[]
+2022-07-12 06:50:04 [INFO] in_bound_peers
+2022-07-12 06:50:04 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:50:04 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:50:04 [INFO] out_bound_peers
+2022-07-12 06:50:04 [INFO] --------feeler task-------------------------
+2022-07-12 06:50:04 [INFO] --------new table---------------------------
+2022-07-12 06:50:04 [INFO] --------tried table---------------------------
+2022-07-12 06:50:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:50:04 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:50:04 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:50:09 [DEBU] try directly connect to seed
+2022-07-12 06:50:14 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:50:19 [DEBU] try directly connect to seed
+2022-07-12 06:50:24 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:50:29 [DEBU] try directly connect to seed
+2022-07-12 06:50:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:50:34 [INFO] conn_counter: map[]
+2022-07-12 06:50:34 [INFO] in_bound_peers
+2022-07-12 06:50:34 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:50:34 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:50:34 [INFO] out_bound_peers
+2022-07-12 06:50:34 [INFO] --------feeler task-------------------------
+2022-07-12 06:50:34 [INFO] --------new table---------------------------
+2022-07-12 06:50:34 [INFO] --------tried table---------------------------
+2022-07-12 06:50:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:50:34 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:50:36 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:50:39 [DEBU] try directly connect to seed
+2022-07-12 06:50:44 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:50:49 [DEBU] try directly connect to seed
+2022-07-12 06:50:54 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:50:59 [DEBU] try directly connect to seed
+2022-07-12 06:51:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:51:04 [INFO] conn_counter: map[]
+2022-07-12 06:51:04 [INFO] in_bound_peers
+2022-07-12 06:51:04 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:51:04 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:51:04 [INFO] out_bound_peers
+2022-07-12 06:51:04 [INFO] --------feeler task-------------------------
+2022-07-12 06:51:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:51:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:51:04 [INFO] port: 8081
+2022-07-12 06:51:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:51:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:51:04 [INFO] port: 8081
+2022-07-12 06:51:04 [INFO] --------new table---------------------------
+2022-07-12 06:51:04 [INFO] --------tried table---------------------------
+2022-07-12 06:51:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:51:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:51:04 [INFO] port: 8081
+2022-07-12 06:51:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:51:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:51:04 [INFO] port: 8081
+2022-07-12 06:51:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:51:04 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:51:04 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:51:09 [DEBU] try directly connect to seed
+2022-07-12 06:51:14 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:51:19 [DEBU] try directly connect to seed
+2022-07-12 06:51:24 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:51:29 [DEBU] try directly connect to seed
+2022-07-12 06:51:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:51:34 [INFO] conn_counter: map[]
+2022-07-12 06:51:34 [INFO] in_bound_peers
+2022-07-12 06:51:34 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:51:34 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:51:34 [INFO] out_bound_peers
+2022-07-12 06:51:34 [INFO] --------feeler task-------------------------
+2022-07-12 06:51:34 [INFO] feeler_time: 1657608634
+2022-07-12 06:51:34 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:51:34 [INFO] port: 8081
+2022-07-12 06:51:34 [INFO] feeler_time: 1657608635
+2022-07-12 06:51:34 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:51:34 [INFO] port: 8081
+2022-07-12 06:51:34 [INFO] --------new table---------------------------
+2022-07-12 06:51:34 [INFO] --------tried table---------------------------
+2022-07-12 06:51:34 [INFO] feeler_time: 1657608635
+2022-07-12 06:51:34 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:51:34 [INFO] port: 8081
+2022-07-12 06:51:34 [INFO] feeler_time: 1657608634
+2022-07-12 06:51:34 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:51:34 [INFO] port: 8081
+2022-07-12 06:51:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:51:34 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:51:35 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:51:39 [DEBU] try directly connect to seed
+2022-07-12 06:51:44 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:51:49 [DEBU] try directly connect to seed
+2022-07-12 06:51:54 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:51:59 [DEBU] try directly connect to seed
+2022-07-12 06:52:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:52:04 [INFO] conn_counter: map[]
+2022-07-12 06:52:04 [INFO] in_bound_peers
+2022-07-12 06:52:04 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:52:04 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:52:04 [INFO] out_bound_peers
+2022-07-12 06:52:04 [INFO] --------feeler task-------------------------
+2022-07-12 06:52:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:52:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:52:04 [INFO] port: 8081
+2022-07-12 06:52:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:52:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:52:04 [INFO] port: 8081
+2022-07-12 06:52:04 [INFO] --------new table---------------------------
+2022-07-12 06:52:04 [INFO] --------tried table---------------------------
+2022-07-12 06:52:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:52:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:52:04 [INFO] port: 8081
+2022-07-12 06:52:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:52:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:52:04 [INFO] port: 8081
+2022-07-12 06:52:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:52:04 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:52:05 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:52:09 [DEBU] try directly connect to seed
+2022-07-12 06:52:14 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:52:19 [DEBU] try directly connect to seed
+2022-07-12 06:52:24 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:52:29 [DEBU] try directly connect to seed
+2022-07-12 06:52:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:52:34 [INFO] conn_counter: map[]
+2022-07-12 06:52:34 [INFO] in_bound_peers
+2022-07-12 06:52:34 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:52:34 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:52:34 [INFO] out_bound_peers
+2022-07-12 06:52:34 [INFO] --------feeler task-------------------------
+2022-07-12 06:52:34 [INFO] feeler_time: 1657608635
+2022-07-12 06:52:34 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:52:34 [INFO] port: 8081
+2022-07-12 06:52:34 [INFO] feeler_time: 1657608634
+2022-07-12 06:52:34 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:52:34 [INFO] port: 8081
+2022-07-12 06:52:34 [INFO] --------new table---------------------------
+2022-07-12 06:52:34 [INFO] --------tried table---------------------------
+2022-07-12 06:52:34 [INFO] feeler_time: 1657608634
+2022-07-12 06:52:34 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:52:34 [INFO] port: 8081
+2022-07-12 06:52:34 [INFO] feeler_time: 1657608635
+2022-07-12 06:52:34 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:52:34 [INFO] port: 8081
+2022-07-12 06:52:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:52:34 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:52:35 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:52:39 [DEBU] try directly connect to seed
+2022-07-12 06:52:44 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:52:49 [DEBU] try directly connect to seed
+2022-07-12 06:52:54 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:52:59 [DEBU] try directly connect to seed
+2022-07-12 06:53:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:53:04 [INFO] conn_counter: map[]
+2022-07-12 06:53:04 [INFO] in_bound_peers
+2022-07-12 06:53:04 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:53:04 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:53:04 [INFO] out_bound_peers
+2022-07-12 06:53:04 [INFO] --------feeler task-------------------------
+2022-07-12 06:53:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:53:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:53:04 [INFO] port: 8081
+2022-07-12 06:53:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:53:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:53:04 [INFO] port: 8081
+2022-07-12 06:53:04 [INFO] --------new table---------------------------
+2022-07-12 06:53:04 [INFO] --------tried table---------------------------
+2022-07-12 06:53:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:53:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:53:04 [INFO] port: 8081
+2022-07-12 06:53:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:53:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:53:04 [INFO] port: 8081
+2022-07-12 06:53:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:53:04 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:53:04 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:53:09 [DEBU] try directly connect to seed
+2022-07-12 06:53:14 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:53:19 [DEBU] try directly connect to seed
+2022-07-12 06:53:24 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:53:29 [DEBU] try directly connect to seed
+2022-07-12 06:53:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:53:34 [INFO] conn_counter: map[]
+2022-07-12 06:53:34 [INFO] in_bound_peers
+2022-07-12 06:53:34 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:53:34 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:53:34 [INFO] out_bound_peers
+2022-07-12 06:53:34 [INFO] --------feeler task-------------------------
+2022-07-12 06:53:34 [INFO] feeler_time: 1657608634
+2022-07-12 06:53:34 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:53:34 [INFO] port: 8081
+2022-07-12 06:53:34 [INFO] feeler_time: 1657608635
+2022-07-12 06:53:34 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:53:34 [INFO] port: 8081
+2022-07-12 06:53:34 [INFO] --------new table---------------------------
+2022-07-12 06:53:34 [INFO] --------tried table---------------------------
+2022-07-12 06:53:34 [INFO] feeler_time: 1657608634
+2022-07-12 06:53:34 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:53:34 [INFO] port: 8081
+2022-07-12 06:53:34 [INFO] feeler_time: 1657608635
+2022-07-12 06:53:34 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:53:34 [INFO] port: 8081
+2022-07-12 06:53:34 [INFO] ////////////////////////////////////////
+2022-07-12 06:53:34 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:53:39 [DEBU] try directly connect to seed
+2022-07-12 06:53:39 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:53:44 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:53:49 [DEBU] try directly connect to seed
+2022-07-12 06:53:54 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:53:59 [DEBU] try directly connect to seed
+2022-07-12 06:54:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:54:04 [INFO] conn_counter: map[]
+2022-07-12 06:54:04 [INFO] in_bound_peers
+2022-07-12 06:54:04 [INFO] ip: 10.211.55.4 port: 8081
+2022-07-12 06:54:04 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:54:04 [INFO] out_bound_peers
+2022-07-12 06:54:04 [INFO] --------feeler task-------------------------
+2022-07-12 06:54:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:54:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:54:04 [INFO] port: 8081
+2022-07-12 06:54:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:54:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:54:04 [INFO] port: 8081
+2022-07-12 06:54:04 [INFO] --------new table---------------------------
+2022-07-12 06:54:04 [INFO] --------tried table---------------------------
+2022-07-12 06:54:04 [INFO] feeler_time: 1657608635
+2022-07-12 06:54:04 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:54:04 [INFO] port: 8081
+2022-07-12 06:54:04 [INFO] feeler_time: 1657608634
+2022-07-12 06:54:04 [INFO] ip_split: [10 211 55 4]
+2022-07-12 06:54:04 [INFO] port: 8081
+2022-07-12 06:54:04 [INFO] ////////////////////////////////////////
+2022-07-12 06:54:04 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:54:04 [DEBU] ping peer error: buildInboundConn err:dial tcp 10.211.55.1:0: connect: can't assign requested addressendpoint:10.211.55.1:0
+2022-07-12 06:54:09 [DEBU] try directly connect to seed
+2022-07-12 06:54:14 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:54:19 [DEBU] try directly connect to seed
+2022-07-12 06:54:24 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:54:27 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-12 06:54:28 [DEBU] METHOD_BUILD_OUTBOUND conn close without error
+2022-07-12 06:54:29 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-12 06:54:29 [DEBU] heart_beat  inside METHOD_BUILD_OUTBOUND closed
+2022-07-12 06:54:29 [DEBU] try directly connect to seed
