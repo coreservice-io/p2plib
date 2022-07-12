@@ -1,6 +1,0 @@
-=============== Jul 12, 2022 (CST) ===============
-17:16:23.817826 log@legend F·NumFile S·FileSize N·Entry C·BadEntry B·BadBlock Ke·KeyError D·DroppedEntry L·Level Q·SeqNum T·TimeElapsed
-17:16:23.856578 db@open opening
-17:16:23.857291 version@stat F·[] S·0B[] Sc·[]
-17:16:23.876899 db@janitor F·2 G·0
-17:16:23.876970 db@open done T·20.360375ms
