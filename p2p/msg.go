@@ -140,7 +140,7 @@ func decode_peerlist(pl_bytes []byte) ([]*Peer, error) {
 		ip = ip + strconv.Itoa(int(pl_bytes[start_pos])) + "."
 		ip = ip + strconv.Itoa(int(pl_bytes[start_pos+1])) + "."
 		ip = ip + strconv.Itoa(int(pl_bytes[start_pos+2])) + "."
-		ip = ip + strconv.Itoa(int(pl_bytes[start_pos+3])) + "."
+		ip = ip + strconv.Itoa(int(pl_bytes[start_pos+3]))
 
 		ipv4 := net.ParseIP(ip).To4()
 		if ipv4 == nil {
