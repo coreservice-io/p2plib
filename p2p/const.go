@@ -11,6 +11,9 @@ const BUCKET_SIZE = 64
 const NEW_TABLE_BUCKET_NUM = 2048
 const TRIED_TABLE_BUCKET_NUM = 64
 
+const TRIED_TABLE_DBKV_SAVE_INTERVAL = 60   //seconds
+const NEW_TABLE_BUFFER_UPDATE_INTERVAL = 60 //seconds
+
 //peerlist and feeler
 const FEELER_INTERVAL = 1            //feel some peer in new/tried table every {FEELER_INTERVAL} second
 const REFRESH_PEERLIST_INTERVAL = 30 //seconds

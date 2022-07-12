@@ -356,7 +356,7 @@ func (tm *TableManager) feel_tried_table() {
 func deamon_save_kvdb_tried_table(tm *TableManager) {
 	for {
 		//save every 15mins
-		time.Sleep(15 * time.Minute)
+		time.Sleep(TRIED_TABLE_DBKV_SAVE_INTERVAL * time.Second)
 
 		func(table_manager *TableManager) {
 			table_manager.tried_table_lock.Lock()
@@ -418,10 +418,8 @@ func deamon_update_new_table_buffer(tm *TableManager) {
 		}
 
 		tm.new_table_lock.Unlock()
-
 		//every 60 seconds do the job
-		time.Sleep(time.Second * 60)
-
+		time.Sleep(time.Second * NEW_TABLE_BUFFER_UPDATE_INTERVAL)
 	}
 
 }
