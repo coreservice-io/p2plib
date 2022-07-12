@@ -196,6 +196,9 @@ func (hub *Hub) start_server() error {
 
 				hub.logger.Infoln("peerconn close callback ", ip, hub.conn_counter[ip])
 				hub.conn_counter[ip] = hub.conn_counter[ip] - 1
+				if hub.conn_counter[ip] == 0 {
+					delete(hub.conn_counter, ip)
+				}
 				hub.logger.Infoln("peerconn close callback ", ip, hub.conn_counter[ip])
 
 				hub.conn_lock.Unlock()
