@@ -1,0 +1,108 @@
+2022-07-12 06:02:37 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:02:37 [WARN] kvdb_get_outbounds warning: leveldb: not found
+2022-07-12 06:02:42 [DEBU] try directly connect to seed
+2022-07-12 06:02:47 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:02:52 [DEBU] try directly connect to seed
+2022-07-12 06:02:57 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:03:02 [DEBU] try directly connect to seed
+2022-07-12 06:03:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:03:07 [INFO] conn_counter: map[]
+2022-07-12 06:03:07 [INFO] in_bound_peers
+2022-07-12 06:03:07 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:03:07 [INFO] out_bound_peers
+2022-07-12 06:03:07 [INFO] --------table---------------------------
+2022-07-12 06:03:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:03:07 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:03:12 [DEBU] try directly connect to seed
+2022-07-12 06:03:17 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:03:22 [DEBU] try directly connect to seed
+2022-07-12 06:03:27 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:03:32 [DEBU] try directly connect to seed
+2022-07-12 06:03:37 [INFO] ////////////////////////////////////////
+2022-07-12 06:03:37 [INFO] conn_counter: map[]
+2022-07-12 06:03:37 [INFO] in_bound_peers
+2022-07-12 06:03:37 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:03:37 [INFO] out_bound_peers
+2022-07-12 06:03:37 [INFO] --------table---------------------------
+2022-07-12 06:03:37 [INFO] ////////////////////////////////////////
+2022-07-12 06:03:37 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:03:42 [DEBU] try directly connect to seed
+2022-07-12 06:03:47 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:03:52 [DEBU] try directly connect to seed
+2022-07-12 06:03:57 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:04:02 [DEBU] try directly connect to seed
+2022-07-12 06:04:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:04:07 [INFO] conn_counter: map[]
+2022-07-12 06:04:07 [INFO] in_bound_peers
+2022-07-12 06:04:07 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:04:07 [INFO] out_bound_peers
+2022-07-12 06:04:07 [INFO] --------table---------------------------
+2022-07-12 06:04:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:04:07 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:04:12 [DEBU] try directly connect to seed
+2022-07-12 06:04:17 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:04:22 [DEBU] try directly connect to seed
+2022-07-12 06:04:27 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:04:32 [DEBU] try directly connect to seed
+2022-07-12 06:04:37 [INFO] ////////////////////////////////////////
+2022-07-12 06:04:37 [INFO] conn_counter: map[]
+2022-07-12 06:04:37 [INFO] in_bound_peers
+2022-07-12 06:04:37 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:04:37 [INFO] out_bound_peers
+2022-07-12 06:04:37 [INFO] --------table---------------------------
+2022-07-12 06:04:37 [INFO] ////////////////////////////////////////
+2022-07-12 06:04:37 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:04:42 [DEBU] try directly connect to seed
+2022-07-12 06:04:47 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:04:52 [DEBU] try directly connect to seed
+2022-07-12 06:04:57 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:05:02 [DEBU] try directly connect to seed
+2022-07-12 06:05:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:05:07 [INFO] conn_counter: map[]
+2022-07-12 06:05:07 [INFO] in_bound_peers
+2022-07-12 06:05:07 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:05:07 [INFO] out_bound_peers
+2022-07-12 06:05:07 [INFO] --------table---------------------------
+2022-07-12 06:05:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:05:07 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:05:12 [DEBU] try directly connect to seed
+2022-07-12 06:05:17 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:05:22 [DEBU] try directly connect to seed
+2022-07-12 06:05:27 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:05:32 [DEBU] try directly connect to seed
+2022-07-12 06:05:37 [INFO] ////////////////////////////////////////
+2022-07-12 06:05:37 [INFO] conn_counter: map[]
+2022-07-12 06:05:37 [INFO] in_bound_peers
+2022-07-12 06:05:37 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:05:37 [INFO] out_bound_peers
+2022-07-12 06:05:37 [INFO] --------table---------------------------
+2022-07-12 06:05:37 [INFO] ////////////////////////////////////////
+2022-07-12 06:05:37 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:05:42 [DEBU] try directly connect to seed
+2022-07-12 06:05:59 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:06:05 [DEBU] try directly connect to seed
+2022-07-12 06:06:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:06:07 [INFO] conn_counter: map[]
+2022-07-12 06:06:07 [INFO] in_bound_peers
+2022-07-12 06:06:07 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:06:07 [INFO] out_bound_peers
+2022-07-12 06:06:07 [INFO] --------table---------------------------
+2022-07-12 06:06:07 [INFO] ////////////////////////////////////////
+2022-07-12 06:06:10 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:06:15 [DEBU] try directly connect to seed
+2022-07-12 06:06:20 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:06:25 [DEBU] try directly connect to seed
+2022-07-12 06:06:30 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:06:40 [DEBU] try directly connect to seed
+2022-07-12 06:06:39 [INFO] ////////////////////////////////////////
+2022-07-12 06:06:43 [INFO] conn_counter: map[]
+2022-07-12 06:06:44 [INFO] in_bound_peers
+2022-07-12 06:06:44 [INFO] ip: 10.211.55.5 port: 8081
+2022-07-12 06:06:44 [INFO] out_bound_peers
+2022-07-12 06:06:44 [INFO] --------table---------------------------
+2022-07-12 06:06:44 [INFO] feeler_time: 0
+2022-07-12 06:06:44 [INFO] ip_split: [10 211 55 5]
+2022-07-12 06:06:44 [INFO] port: 8081
+2022-07-12 06:06:44 [INFO] ////////////////////////////////////////
+2022-07-12 06:06:46 [DEBU] try rebuild last outbound connections from dbkv 
+2022-07-12 06:06:51 [DEBU] try directly connect to seed

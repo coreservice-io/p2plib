@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"reflect"
@@ -137,6 +138,8 @@ func (tm *TableManager) get_peers_from_new_table(size_limit int) []*Peer {
 }
 
 func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
+
+	fmt.Println("add_peers_to_new_table", pl)
 
 	tm.new_table_lock.Lock()
 	defer tm.new_table_lock.Unlock()
