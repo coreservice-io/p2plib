@@ -3,7 +3,6 @@ package p2p
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -131,8 +130,6 @@ func decode_peerlist(pl_bytes []byte) ([]*Peer, error) {
 	}
 
 	result := []*Peer{}
-
-	fmt.Println("pl_bytes", pl_bytes)
 
 	for i := 0; i < int(pl_len); i++ {
 		start_pos := 2 + i*6

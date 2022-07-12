@@ -217,7 +217,7 @@ func (hub *Hub) start_server() error {
 	return nil
 }
 
-func (hub *Hub) debug_conn_printing() {
+func (hub *Hub) debug_printing() {
 
 	for {
 		time.Sleep(30 * time.Second)
@@ -235,6 +235,16 @@ func (hub *Hub) debug_conn_printing() {
 			hub.logger.Infoln("ip:", p.peer.Ip, "port:", p.peer.Port)
 		}
 
+		hub.logger.Infoln("--------table---------------------------")
+
+		for _, lev1 := range hub.table_manager.new_table.Bucket {
+			for _, lev2 := range lev1 {
+				hub.logger.Infoln("feeler_time:", lev2.Feeler_time)
+				hub.logger.Infoln("ip_split:", lev2.Ip_split)
+				hub.logger.Infoln("port:", lev2.Port)
+			}
+		}
+
 		hub.logger.Infoln("////////////////////////////////////////")
 	}
 
@@ -250,6 +260,6 @@ func (hub *Hub) Start() {
 	go deamon_keep_outbounds(hub)
 	go deamon_refresh_peerlist(hub)
 
-	go hub.debug_conn_printing()
+	go hub.debug_printing()
 
 }
