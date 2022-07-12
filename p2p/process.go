@@ -216,12 +216,13 @@ func deamon_keep_outbounds(hub *Hub) {
 			}
 
 			//allergic sleep
-			// for i := 900; i >= 0; i-- {
-			// 	time.Sleep(1 * time.Second)
-			// 	if len(hub.out_bound_peer_conns) == 0 {
-			// 		break
-			// 	}
-			// }
+			//for i := 900; i >= 0; i-- {
+			for i := 30; i >= 0; i-- {
+				time.Sleep(1 * time.Second)
+				if len(hub.out_bound_peer_conns) == 0 {
+					break
+				}
+			}
 		}
 
 		/////////////update kvdb outboud conns////////////
