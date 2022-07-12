@@ -89,7 +89,7 @@ func NewHub(kvdb KVDB, ref *reference.Reference, ip_black_list map[string]bool, 
 		return nil, errors.New("seed manager empty error, check |sm.Seeds|sm.PeerPool|sm.ref|")
 	}
 
-	tm, tm_err := new_table_manager(kvdb, logger)
+	tm, tm_err := new_table_manager(kvdb, ref, logger)
 	if tm_err != nil {
 		return nil, tm_err
 	}

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/coreservice-io/log"
+	"github.com/coreservice-io/reference"
 )
 
 func SHA256Uint32(input string) uint32 {
@@ -33,6 +34,7 @@ type table struct {
 }
 
 type TableManager struct {
+	ref              *reference.Reference
 	new_table_lock   sync.Mutex
 	new_table        *table
 	new_table_buffer []*Peer // a limited-size fifo buffer used for search
@@ -46,7 +48,7 @@ type TableManager struct {
 	random_code uint32
 }
 
-func new_table_manager(kvdb KVDB, logger log.Logger) (*TableManager, error) {
+func new_table_manager(kvdb KVDB, ref *reference.Reference, logger log.Logger) (*TableManager, error) {
 
 	if kvdb == nil {
 		return nil, errors.New("kvdb empty error")
@@ -54,6 +56,10 @@ func new_table_manager(kvdb KVDB, logger log.Logger) (*TableManager, error) {
 
 	if logger == nil {
 		return nil, errors.New("logger empty error")
+	}
+
+	if ref == nil {
+		return nil, errors.New("reference empty error")
 	}
 
 	return &TableManager{
@@ -152,36 +158,44 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 			continue
 		}
 
-		ip_split := strings.Split(peer.Ip, ".")
 		//check port format correct
 		if peer.Port > 65535 {
 			fmt.Println("add_peers_to_new_table---port formate err continue")
 			continue
 		}
 
-		bucket_p := tm.get_new_bucket_position(ip_split)
+		//check was ip failed
+		if tm.was_feeled_ip_failed(peer.Ip) {
+			continue
+		}
+
+		//////////////////////////////////////////
+		ip_split := strings.Split(peer.Ip, ".")
 		bucket_offset := tm.get_bucket_offset(ip_split)
 
-		if tm.new_table.Bucket[bucket_p][bucket_offset] != nil {
-			old_ip := strings.Join(tm.new_table.Bucket[bucket_p][bucket_offset].Ip_split, ".")
+		//check tried table exist already
+		if tm.tried_table.Bucket[tm.get_tried_bucket_position(ip_split)][bucket_offset] != nil {
+			continue
+		}
+
+		n_bucket_p := tm.get_new_bucket_position(ip_split)
+		if tm.new_table.Bucket[n_bucket_p][bucket_offset] != nil {
+			old_ip := strings.Join(tm.new_table.Bucket[n_bucket_p][bucket_offset].Ip_split, ".")
 			if peer.Ip == old_ip {
-				fmt.Println("add_peers_to_new_table--- same old continue")
 				continue
 			}
 		}
 
-		if tm.new_table.Bucket[bucket_p] == nil {
-			tm.new_table.Bucket[bucket_p] = make(map[uint16]*feeler_peer)
+		if tm.new_table.Bucket[n_bucket_p] == nil {
+			tm.new_table.Bucket[n_bucket_p] = make(map[uint16]*feeler_peer)
 		}
 
-		fmt.Println("add_peers_to_new_table---assign")
-		tm.new_table.Bucket[bucket_p][bucket_offset] = &feeler_peer{
+		tm.new_table.Bucket[n_bucket_p][bucket_offset] = &feeler_peer{
 			Ip_split:    ip_split,
 			Port:        peer.Port,
 			Feeler_time: 0,
 		}
 
-		fmt.Println("add_peers_to_new_table---append")
 		tm.new_table_buffer = append(tm.new_table_buffer, &Peer{
 			Ip:   peer.Ip,
 			Port: peer.Port,
@@ -190,7 +204,7 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 
 }
 
-func (tm *TableManager) feel_new_table_rand_target() *feeler_peer {
+func (tm *TableManager) pop_new_table_rand_target() *feeler_peer {
 
 	tm.new_table_lock.Lock()
 	tm.tried_table_lock.Lock()
@@ -231,12 +245,32 @@ func (tm *TableManager) feel_new_table_rand_target() *feeler_peer {
 	return nt_target_peer
 }
 
+func (tm *TableManager) mark_feeled_ip(ip string, success bool) {
+	key := "feeled_ip:" + ip
+	if success {
+		val := true
+		tm.ref.Set(key, &val, 5*REFRESH_PEERLIST_INTERVAL)
+	} else {
+		val := false
+		tm.ref.Set(key, &val, 5*REFRESH_PEERLIST_INTERVAL)
+	}
+}
+
+func (tm *TableManager) was_feeled_ip_failed(ip string) bool {
+	key := "feeled_ip:" + ip
+	val, _ := tm.ref.Get(key)
+	if val == nil || *((val).(*bool)) {
+		return false
+	}
+	return true
+}
+
 func (tm *TableManager) feel_new_table() {
 
 	///////////////////////////
 	var feeler_target *feeler_peer
 	for i := 0; i < 10; i++ {
-		feeler_target = tm.feel_new_table_rand_target()
+		feeler_target = tm.pop_new_table_rand_target()
 		if feeler_target != nil {
 			break
 		}
@@ -244,9 +278,13 @@ func (tm *TableManager) feel_new_table() {
 	if feeler_target == nil {
 		return
 	}
+
+	ip_str := strings.Join(feeler_target.Ip_split[:], ".")
+
 	///////////////////////////
-	_, p_err := dail_ping_peer(&Peer{Ip: strings.Join(feeler_target.Ip_split[:], "."), Port: feeler_target.Port})
+	_, p_err := dail_ping_peer(&Peer{Ip: ip_str, Port: feeler_target.Port})
 	if p_err != nil {
+		tm.mark_feeled_ip(ip_str, false)
 		tm.logger.Debugln("ping peer error:", p_err)
 		return
 	}
@@ -300,11 +338,12 @@ func (tm *TableManager) feel_tried_table() {
 		tt_bucket_pos := tm.get_tried_bucket_position(task.Ip_split)
 		bucket_offset := tm.get_bucket_offset(task.Ip_split)
 
-		delete(tm.tried_table.Bucket[tt_bucket_pos], bucket_offset)
-		if len(tm.tried_table.Bucket[tt_bucket_pos]) == 0 {
-			delete(tm.tried_table.Bucket, tt_bucket_pos)
+		if tm.tried_table.Bucket[tt_bucket_pos] != nil {
+			delete(tm.tried_table.Bucket[tt_bucket_pos], bucket_offset)
+			if len(tm.tried_table.Bucket[tt_bucket_pos]) == 0 {
+				delete(tm.tried_table.Bucket, tt_bucket_pos)
+			}
 		}
-		tm.logger.Debugln("ping peer error:", ping_err)
 	} else {
 		task.Feeler_time = time.Now().Unix()
 		tm.tried_table_task = append(tm.tried_table_task, task)

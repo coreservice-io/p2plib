@@ -140,8 +140,7 @@ func deamon_refresh_peerlist(hub *Hub) {
 			break
 		}
 
-		//time.Sleep(300 * time.Second)
-		time.Sleep(30 * time.Second)
+		time.Sleep(REFRESH_PEERLIST_INTERVAL * time.Second)
 	}
 
 }
