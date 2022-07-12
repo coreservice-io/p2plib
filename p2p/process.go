@@ -209,7 +209,9 @@ func deamon_keep_outbounds(hub *Hub) {
 		if len(hub.out_bound_peer_conns) != 0 {
 			//pick connection from tried table
 			tt_peers := hub.table_manager.get_peers_from_tried_table(int(hub.config.Outbound_limit))
+			hub.logger.Infoln("////////try to connect from tried table/////////")
 			for _, t_p := range tt_peers {
+				hub.logger.Infoln("ip:", t_p.Ip, "port", t_p.Port)
 				dial_build_outbound(hub, &Peer{Ip: t_p.Ip, Port: t_p.Port})
 			}
 
