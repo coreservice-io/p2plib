@@ -53,7 +53,7 @@ func main() {
 	///////////////////////////////////////////////
 
 	hub, hub_err := p2p.NewHub(kvdb, ref, ip_black_list, p2p.NewSeedManager([]*p2p.Seed{
-		{Host: "192.168.0.105", Port: 8081}, {Host: "10.211.55.4", Port: 8081},
+		{Host: "192.168.0.105", Port: 8081}, //{Host: "10.211.55.4", Port: 8081},
 	}, ref), &p2p_hub_conf, logger)
 	if hub_err != nil {
 		fmt.Println("hub_err", hub_err)
@@ -61,8 +61,6 @@ func main() {
 	}
 
 	hub.Start()
-
-	fmt.Println("this is peer1")
 
 	for {
 		//never quit

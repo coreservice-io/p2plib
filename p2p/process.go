@@ -101,7 +101,6 @@ func deamon_refresh_peerlist(hub *Hub) {
 		/////////////////////////////
 		hub.in_bound_peer_lock.Lock()
 		hub.out_bound_peer_lock.Lock()
-		hub.logger.Infoln("lock4")
 
 		for _, pc := range hub.in_bound_peer_conns {
 			if pc != nil && pc.rpc_client != nil && !pc.closed {
@@ -116,7 +115,6 @@ func deamon_refresh_peerlist(hub *Hub) {
 		}
 
 		hub.out_bound_peer_lock.Unlock()
-		hub.logger.Infoln("unlock4")
 		hub.in_bound_peer_lock.Unlock()
 		/////////////////////////////
 
@@ -130,7 +128,7 @@ func deamon_refresh_peerlist(hub *Hub) {
 
 			peer_list, err := decode_peerlist(pl)
 			if err != nil {
-				hub.logger.Debugln("decode_peerlist err", peer_list)
+				hub.logger.Debugln("decode_peerlist err", err)
 				continue
 			}
 
