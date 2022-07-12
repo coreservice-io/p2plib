@@ -148,12 +148,14 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 		//check ipv4 format correct
 		ip := net.ParseIP(peer.Ip)
 		if ip == nil || ip.To4() == nil {
+			fmt.Println("add_peers_to_new_table---ip formate err continue")
 			continue
 		}
 
 		ip_split := strings.Split(peer.Ip, ".")
 		//check port format correct
 		if peer.Port == 0 || peer.Port > 65535 {
+			fmt.Println("add_peers_to_new_table---port formate err continue")
 			continue
 		}
 
@@ -163,6 +165,7 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 		if tm.new_table.Bucket[bucket_p][bucket_offset] != nil {
 			old_ip := strings.Join(tm.new_table.Bucket[bucket_p][bucket_offset].Ip_split, ".")
 			if peer.Ip == old_ip {
+				fmt.Println("add_peers_to_new_table--- same old continue")
 				continue
 			}
 		}
@@ -171,12 +174,14 @@ func (tm *TableManager) add_peers_to_new_table(pl []*Peer) {
 			tm.new_table.Bucket[bucket_p] = make(map[uint16]*feeler_peer)
 		}
 
+		fmt.Println("add_peers_to_new_table---assign")
 		tm.new_table.Bucket[bucket_p][bucket_offset] = &feeler_peer{
 			Ip_split:    ip_split,
 			Port:        peer.Port,
 			Feeler_time: 0,
 		}
 
+		fmt.Println("add_peers_to_new_table---append")
 		tm.new_table_buffer = append(tm.new_table_buffer, &Peer{
 			Ip:   peer.Ip,
 			Port: peer.Port,
